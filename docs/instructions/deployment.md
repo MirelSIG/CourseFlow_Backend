@@ -4,7 +4,7 @@
 Este documento detalla el procedimiento para poner en producción el backend y la base de datos de CourseFlow. El objetivo es garantizar un entorno estable, seguro y escalable mediante contenedores, cumpliendo con los estándares de profesionalidad requeridos.
 
 ## Orquestación con Docker
-Para asegurar que el proyecto sea "totalmente integrado y flexible", utilizamos Docker y Docker Compose. Esto permite desplegar la lógica de negocio (Python/Flask-FastAPI) y la persistencia (PostgreSQL) de forma simultánea.
+Para asegurar que el proyecto sea "totalmente integrado y flexible", utilizamos Docker y Docker Compose. Esto permite desplegar la lógica de negocio (Python/FastAPI) y la persistencia (PostgreSQL) de forma simultánea.
 
 ### Comando para Despliegue
 
@@ -23,7 +23,7 @@ docker-compose up -d --build
 
 La arquitectura desplegada se compone de:
 
-- **Contenedor de API:** Ejecuta la lógica en Python (Flask/FastAPI) bajo un servidor de grado de producción como Gunicorn o Uvicorn.- **Contenedor de BBDD:** Una instancia de PostgreSQL que gestiona el modelo relacional de usuarios, cursos y solicitudes.
+- **Contenedor de API:** Ejecuta la lógica en Python (FastAPI/FastAPI) bajo un servidor de grado de producción como Gunicorn o Uvicorn.- **Contenedor de BBDD:** Una instancia de PostgreSQL que gestiona el modelo relacional de usuarios, cursos y solicitudes.
 - **Volúmenes de Datos:** Para asegurar que la información de la base de datos no se pierda al reiniciar los contenedores.
 
 # Consideración de Datos y Seguridad

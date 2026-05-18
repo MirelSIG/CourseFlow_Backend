@@ -64,7 +64,7 @@ Son 6 las competencias que se tienen que acreditar en el proyecto.
 - VueJS
 - Python
 - API-Rest
-- Flask
+- FastAPI
 - Git
 - Git Hub
 - SCRUM
@@ -84,7 +84,7 @@ No se puede utilizar una IA (Inteligencia Artificial) como elemento que realice 
 
 Desde un frontend realizado con una SPA (Single Page Application) que gestione una API de datos y un CRUD completo con un backend estructurado en un lenguaje que contenga la lógica de la aplicación con una base de datos SQL, que trabaje sobre el modelo relacional.
 
-El stack a utilizar es el que se ha dado en el roadmap o itinerario del curso: FIGMA, HTML5, CCS3, JAVASCRIPT, VUE, PYTHON, FLASK y bases de datos SQL (MySQL, SqLite, PostgreSQL, MongoDB), utilizando las herramientas con las que hemos trabajado: VSC, JIRA, GIT, GITHUB, SASS, TAILWIND, BOOTSTRAP. El cliente puede variar algún elemento de esta lista que se entienda como requerimiento.
+El stack a utilizar es el que se ha dado en el roadmap o itinerario del curso: FIGMA, HTML5, CCS3, JAVASCRIPT, VUE, PYTHON, FASTAPI y bases de datos SQL (MySQL, SqLite, PostgreSQL, MongoDB), utilizando las herramientas con las que hemos trabajado: VSC, JIRA, GIT, GITHUB, SASS, TAILWIND, BOOTSTRAP. El cliente puede variar algún elemento de esta lista que se entienda como requerimiento.
 
 Hay que crear un CRUD completo que permita crear, modificar y/o borrar los datos que den funcionalidad al sistema del cual se conoce su finalidad y objetivo.
 
@@ -113,7 +113,7 @@ Con posterioridad cada grupo realizará un sprint retro en la que se evalúan lo
 ### Herramientas
 El framework de frontend será Vue 3 (Composition API). En algún proyecto, a requerimiento del cliente, se puede considerar otro framework, con la validación del formador.
 
-El framework de backend a utilizar en todos los casos y sin posibilidad de cambio es Flask (Fast API, puede también ser considerado como opción) del lenguaje de programación Python, con todas sus librerías. Se puede utilizar un ORM como Alchemy, o utilizar directamente el lenguaje SQL y acreditar su manejo (criterio también consultado con diversas empresas).
+El framework de backend a utilizar en todos los casos y sin posibilidad de cambio es FastAPI (Fast API, puede también ser considerado como opción) del lenguaje de programación Python, con todas sus librerías. Se puede utilizar un ORM como Alchemy, o utilizar directamente el lenguaje SQL y acreditar su manejo (criterio también consultado con diversas empresas).
 
 Utilizar un modelo de bases de datos relacionales en lenguaje SQL: MySQL-MariaDB, PostgreSQL, SqLite, para usar funcionalidades medias y avanzadas. Es posible realizar un soporte de datos en un modelo No-SQL, pero deberá estar justificado y validado. Generar en cada caso el proceso completo de creación de un modelo de BBDD y acreditarlo en el documento de presentación.
 

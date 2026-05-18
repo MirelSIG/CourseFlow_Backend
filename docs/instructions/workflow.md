@@ -35,7 +35,7 @@ c. **Validación del Diseño:**: El humano valida el contrato de la API. No se e
 
 d. **Implementación:**
 
-     1. **Código:**: Escribir lógica en Flask siguiendo principios SOLID y nomenclatura en inglés.
+     1. **Código:**: Escribir lógica en FastAPI siguiendo principios SOLID y nomenclatura en inglés.
      2. **Tests Unitarios:**: CCrear pruebas para modelos o helpers de seguridad co-localizados o en tests/.
      3. **Tests de Integración:**: Desarrollar los tests en la carpeta /tests/ utilizando las fixtures de conftest.py.
 e. **Ejecución y Debugging:**: Ejecutar pytest dentro del contenedor Docker para asegurar que la tarea cumple con los requisitos sin romper módulos previos.
