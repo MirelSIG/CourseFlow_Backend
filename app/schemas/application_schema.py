@@ -1,4 +1,4 @@
-from pydantic import BaseModel, constr
+from pydantic import BaseModel, constr, ConfigDict
 from typing import Optional
 
 class ApplicationBase(BaseModel):
@@ -13,6 +13,4 @@ class ApplicationRead(ApplicationBase):
     id: int
     user_id: int
     status: str
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)

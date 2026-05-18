@@ -40,17 +40,6 @@ def login(data: LoginRequest, db: Session = Depends(get_db)):
     token = create_access_token(user_id=user.id, role=user.role)
     return TokenResponse(access_token=token)
 
-@router.post("/logout", response_model=LogoutResponse)
-def logout(
-    token: str = Depends(get_current_user),  # get_current_user ya valida el token
-    raw_token: str = Depends(lambda t=Depends(get_db), token=Depends(...): None),
-):
-    """
-    Truco: más simple es recibir el token desde el header otra vez.
-    Mejor versión abajo.
-    """
-    return LogoutResponse(detail="Not implemented")
-
 from fastapi import Header
 
 @router.post("/logout", response_model=LogoutResponse)

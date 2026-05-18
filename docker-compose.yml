@@ -1,5 +1,3 @@
-version: "3.9"
-
 services:
   db:
     image: postgres:15-alpine
@@ -15,7 +13,7 @@ services:
       POSTGRES_PASSWORD: courseflow
       POSTGRES_DB: courseflow_db
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     networks:
@@ -33,11 +31,14 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg2://courseflow:courseflow@db:5432/courseflow_db
     ports:
-      - "8000:8000"
+      - "8001:8000"
     volumes:
       - .:/app
     networks:
-      - courseflow_net:latest
+      - courseflow_net
+
+  pgadmin:
+    image: dpage/pgadmin4:latest
     container_name: courseflow_pgadmin
     restart: always
     environment:
@@ -45,9 +46,6 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
       PGADMIN_CONFIG_COOKIE_SAMESITE: "Lax"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     depends_on:
@@ -57,6 +55,9 @@ services:
 
 networks:
   courseflow_net:
+    driver: bridge
 
 volumes:
   postgres_data:
+    driver: local
+

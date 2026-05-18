@@ -1,10 +1,8 @@
 # Proceso de Refactorización del Backend
 
-Este documento describe el proceso de refactorización llevado a cabo para implementar nuevas reglas de negocio y validaciones en el backend de la aplicación CourseFlow, basándose en las historias de usuario y especificaciones proporcionadas.
+Este documento describe el proceso de refactorización llevado a cabo para implementar nuevas reglas de negocio y validaciones en el backend de la aplicación CourseFlow.
 
 ## 1. Preparación del Entorno
-
-- Se cambió a la rama `mirel` para aislar los nuevos desarrollos y no afectar la rama principal.
 
 ## 2. Modificación de los Modelos de la Base de Datos (`app/models/`)
 
@@ -50,4 +48,3 @@ Se refactorizaron las rutas de la API para implementar las nuevas reglas de nego
 
 - **Crear una nueva migración de base de datos** con Alembic para aplicar los cambios realizados en los modelos a la estructura de la base de datos.
 - **Ejecutar las pruebas** para verificar que las nuevas funcionalidades y restricciones operan correctamente.
-- **Realizar un `commit`** con todos los cambios en la rama `mirel` y, cuando esté validado, integrarlo a la rama principal.

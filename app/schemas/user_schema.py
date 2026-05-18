@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr, validator
+from pydantic import BaseModel, EmailStr, field_validator, ConfigDict
 from typing import Optional
 from datetime import date, timedelta
 import re
@@ -9,7 +9,7 @@ class UserBase(BaseModel):
     dni_nie: Optional[str] = None
     birth_date: Optional[date] = None
 
-    @validator("dni_nie")
+    @field_validator("dni_nie")
     def validate_dni_nie(cls, v):
         if v is None:
             return v
@@ -18,7 +18,7 @@ class UserBase(BaseModel):
             raise ValueError("Invalid DNI/NIE format")
         return v.upper()
 
-    @validator("birth_date")
+    @field_validator("birth_date")
     def validate_age(cls, v):
         if v is None:
             return v
@@ -32,6 +32,4 @@ class UserCreate(UserBase):
 class UserRead(UserBase):
     id: int
     role: str
-
-    class Config:
-        from_attributes = True
+    model_config = ConfigDict(from_attributes=True)
