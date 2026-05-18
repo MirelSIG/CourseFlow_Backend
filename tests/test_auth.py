@@ -8,7 +8,7 @@ client = TestClient(app)
 def test_register_user():
     # Test successful registration
     response = client.post(
-        "/api/v1/users/",
+        "/api/v1/auth/register",
         json={
             "name": "Test User",
             "email": "test@example.com",
@@ -23,7 +23,7 @@ def test_register_user():
 def test_register_duplicate_email():
     # 1. Register first user
     client.post(
-        "/api/v1/users/",
+        "/api/v1/auth/register",
         json={
             "name": "User 1",
             "email": "dup@example.com",
@@ -32,7 +32,7 @@ def test_register_duplicate_email():
     )
     # 2. Try to register again with same email
     response = client.post(
-        "/api/v1/users/",
+        "/api/v1/auth/register",
         json={
             "name": "User 2",
             "email": "dup@example.com",
@@ -45,7 +45,7 @@ def test_register_duplicate_email():
 def test_login_success():
     # 1. Register user
     client.post(
-        "/api/v1/users/",
+        "/api/v1/auth/register",
         json={
             "name": "Login User",
             "email": "login@example.com",
@@ -67,7 +67,7 @@ def test_login_success():
 def test_login_invalid_credentials():
     # 1. Register user
     client.post(
-        "/api/v1/users/",
+        "/api/v1/auth/register",
         json={
             "name": "Login User",
             "email": "wrong@example.com",
@@ -90,7 +90,7 @@ def test_logout():
     email = "logout@example.com"
     pwd = "password123"
     client.post(
-        "/api/v1/users/",
+        "/api/v1/auth/register",
         json={"name": "U", "email": email, "password": pwd}
     )
     login_res = client.post(

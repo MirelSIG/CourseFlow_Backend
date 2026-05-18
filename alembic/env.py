@@ -8,8 +8,8 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Añadir el directorio raíz al PYTHONPATH
-sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+# Añadir el directorio src al PYTHONPATH
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 load_dotenv()
 
 # this is the Alembic Config object, which provides

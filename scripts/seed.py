@@ -3,8 +3,8 @@ import sys
 import bcrypt
 from datetime import date, timedelta
 
-# Añadir el directorio raíz al path
-sys.path.append(os.path.dirname(__file__))
+# Añadir el directorio src al path
+sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 from app.db.session import SessionLocal
 from app.models.user import User

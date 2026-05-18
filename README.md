@@ -219,13 +219,21 @@ erDiagram
 *   **Lista de Espera:** Vincula usuarios con cursos cuando el cupo está lleno, manteniendo un orden secuencial mediante el campo `position`.
 5. Docker y docker-compose
 Levantar todo el backend:
-docker-compose up --build
-Esto construye la imagen y levanta el contenedor con FastAPI y PostgreSQL.
+```bash
+docker compose up --build -d
+```
+Esto construye la imagen, levanta PostgreSQL, ejecuta las migraciones automáticamente (vía entrypoint) y levanta el contenedor con FastAPI.
 
 Servicios incluidos:
 • backend → FastAPI
 • db → PostgreSQL
-• pgadmin → opcional
+• pgadmin → Interfaz para PostgreSQL (http://localhost:5050)
+
+Poblar la base de datos (Seed):
+Para insertar datos de prueba iniciales (administradores, usuarios, cursos y solicitudes), ejecuta:
+```bash
+docker compose exec backend python scripts/seed.py
+```
 
   6. Autenticación (JWT)
 El flujo:

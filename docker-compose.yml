@@ -32,12 +32,18 @@ services:
         condition: service_healthy
     environment:
       DATABASE_URL: postgresql+psycopg2://courseflow:courseflow@db:5432/courseflow_db
+      SECRET_KEY: ${SECRET_KEY:-supersecretkey}
+      ALGORITHM: ${ALGORITHM:-HS256}
+      ACCESS_TOKEN_EXPIRE_MINUTES: ${ACCESS_TOKEN_EXPIRE_MINUTES:-30}
     ports:
       - "8000:8000"
     volumes:
       - .:/app
     networks:
-      - courseflow_net:latest
+      - courseflow_net
+
+  pgadmin:
+    image: dpage/pgadmin4
     container_name: courseflow_pgadmin
     restart: always
     environment:
@@ -45,15 +51,23 @@ services:
       PGADMIN_DEFAULT_PASSWORD: admin
       PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "False"
       PGADMIN_CONFIG_COOKIE_SAMESITE: "Lax"
-    environment:
-      PGADMIN_DEFAULT_EMAIL: admin@admin.com
-      PGADMIN_DEFAULT_PASSWORD: admin
     ports:
       - "5050:80"
     depends_on:
       - db
     networks:
       - courseflow_net
+
+  # frontend:
+  #   image: nginx:alpine
+  #   container_name: courseflow_frontend
+  #   restart: always
+  #   ports:
+  #     - "80:80"
+  #   volumes:
+  #     - ./frontend/dist:/usr/share/nginx/html
+  #   networks:
+  #     - courseflow_net
 
 networks:
   courseflow_net:
