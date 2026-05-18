@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, String, ForeignKey, DateTime, UniqueConstraint, Boolean, Text
 from sqlalchemy.sql import func
 from app.db.base import Base
 
@@ -12,4 +12,6 @@ class Application(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
     status = Column(String(30), nullable=False, default="pending")
+    has_darde = Column(Boolean, nullable=True)
+    previous_education = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
