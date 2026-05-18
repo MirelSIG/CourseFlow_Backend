@@ -1,5 +1,11 @@
 from pydantic import BaseModel, EmailStr
 
+class RegisterRequest(BaseModel):
+    name: str
+    email: EmailStr
+    password: str
+    role: str = "user"  # "user" o "admin"
+
 class LoginRequest(BaseModel):
     email: EmailStr
     password: str
@@ -7,3 +13,6 @@ class LoginRequest(BaseModel):
 class TokenResponse(BaseModel):
     access_token: str
     token_type: str = "bearer"
+
+class LogoutResponse(BaseModel):
+    detail: str
