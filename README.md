@@ -220,20 +220,37 @@ erDiagram
 5. Docker y docker-compose
 Levantar todo el backend:
 ```bash
-docker compose up --build -d
+sudo docker compose up --build -d
 ```
 Esto construye la imagen, levanta PostgreSQL, ejecuta las migraciones automáticamente (vía entrypoint) y levanta el contenedor con FastAPI.
 
-Servicios incluidos:
-• backend → FastAPI
-• db → PostgreSQL
-• pgadmin → Interfaz para PostgreSQL (http://localhost:5050)
+Servicios incluidos y puertos expuestos:
+• **backend** → FastAPI (http://localhost:8000/docs)
+• **db** → PostgreSQL (Puerto externo: 5432)
+• **pgadmin** → Interfaz visual para base de datos (http://localhost:5051)
+  - **Usuario:** `admin@admin.com`
+  - **Contraseña:** `admin`
 
 Poblar la base de datos (Seed):
 Para insertar datos de prueba iniciales (administradores, usuarios, cursos y solicitudes), ejecuta:
 ```bash
-docker compose exec backend python scripts/seed.py
+sudo docker compose exec backend python scripts/seed.py
 ```
+
+### 🛠️ Configuración de Conexión en pgAdmin (Paso a Paso)
+Una vez que ingreses a PgAdmin a través de `http://localhost:5051` (o el enlace de IDX) usando las credenciales por defecto, sigue estos pasos para conectarte a la base de datos del proyecto:
+
+1. Haz clic derecho en **Servers** -> **Register** -> **Server...**
+2. En la pestaña **General**:
+   - **Name:** Escribe `CourseFlow DB` (o el nombre que prefieras).
+3. En la pestaña **Connection**:
+   - **Host name/address:** Escribe `db` *(este es el nombre del servicio de la base de datos en docker-compose, que Docker resolverá internamente)*.
+   - **Port:** `5432`
+   - **Maintenance database:** `courseflow_db`
+   - **Username:** `courseflow`
+   - **Password:** `courseflow`
+4. Haz clic en **Save** (Guardar).
+¡Listo! Ya podrás explorar las tablas de usuarios, cursos y solicitudes creadas por las migraciones de Alembic e inspeccionar los datos iniciales.
 
   6. Autenticación (JWT)
 El flujo:
@@ -262,10 +279,37 @@ El flujo:
 
 ---
 8. Testing
-Ejecutar pruebas:
-pytest -q
-Esto ejecuta todas las pruebas en la carpeta tests/.
-Actualmente solo hay una prueba de salud, pero puedes agregar más para cubrir toda la lógica del backend.
+El proyecto cuenta con una suite completa de pruebas unitarias y de integración que validan el comportamiento lógico y la seguridad de las API.
+
+### Comando para ejecutar las pruebas:
+Para ejecutar la suite completa de pruebas unitarias y de integración de la forma más rápida y sencilla, ejecuta este comando en tu terminal:
+
+```bash
+venv/bin/pytest
+```
+
+
+### Tipos de pruebas ejecutadas:
+La suite consta de 19 tests divididos en módulos lógicos específicos:
+
+1. **Autenticación y Registro (`tests/test_auth.py`):**
+   - **Registro de usuarios:** Valida la creación de usuarios con contraseñas encriptadas de forma segura.
+   - **Login de usuarios:** Comprueba que las credenciales válidas devuelvan una cookie JWT segura (`HttpOnly`).
+   - **Credenciales inválidas:** Verifica la denegación correcta de accesos no autorizados.
+
+2. **Middleware y Roles (`tests/test_auth_middleware.py`):**
+   - **Control de Roles:** Verifica la jerarquía estricta de permisos (`User` < `Admin` < `Superadmin`).
+   - **Acceso Restringido:** Valida que los endpoints protegidos devuelvan error `401 Unauthorized` si no se presenta un token.
+   - **Bloqueo de Roles:** Garantiza que los usuarios normales no puedan invocar operaciones administrativas (error `403 Forbidden`).
+
+3. **Gestión de Cursos (`tests/test_courses.py`):**
+   - **Creación, Lectura, Actualización y Borrado (CRUD):** Garantiza que las operaciones CRUD guarden los datos correctamente en la base de datos de pruebas (SQLite en memoria).
+   - **Reglas de negocio (Fechas):** Asegura que no se puedan crear cursos donde la fecha de fin sea menor que la de inicio (`end_date > start_date`).
+   - **Borrado Lógico:** Comprueba que la eliminación de un curso no lo borre físicamente, sino que marque `is_active = False` para no romper el historial de solicitudes históricas.
+   - **Listas filtradas:** Valida que los administradores puedan ver cursos inactivos en las búsquedas, pero los estudiantes solo los cursos activos.
+
+4. **Chequeo de Salud (`tests/test_health.py`):**
+   - **Disponibilidad:** Valida que la ruta de documentación autogenerada (`/docs`) responda con `200 OK` demostrando que el servidor FastAPI está arriba y listo.
 
 9. Flujo general del backend
 1. FastAPI recibe la petición
