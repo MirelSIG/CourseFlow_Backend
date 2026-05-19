@@ -100,19 +100,21 @@ Rutas organizadas por módulo:
 | routes_waiting_list.py | Lista de espera |
 
 `app/models/`
-Modelos SQLAlchemy que representan las tablas:
-• user.py
-• course.py
-• application.py
-• waiting_list.py
-El archivo models/__init__.py importa todos los modelos para que Alembic pueda detectarlos.
+
+    Modelos SQLAlchemy que representan las tablas:
+    • user.py
+    • course.py
+    • application.py
+    • waiting_list.py
+    El archivo models/__init__.py importa todos los modelos para que Alembic pueda detectarlos.
 ---
 `app/schemas/`
-Schemas Pydantic usados para:
-• Validar datos de entrada
-• Formatear respuestas
-• Documentar la API
-Tus nombres personalizados:
+
+    Schemas Pydantic usados para:
+    • Validar datos de entrada
+    • Formatear respuestas
+    • Documentar la API
+
 
 | Archivo | Contenido |
 |---------|----------|
