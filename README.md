@@ -68,7 +68,10 @@ CourseFlow_Backend/
 │   ├── test_users.py
 │   └── test_applications.py
 ├── docs/
-├── project/
+│   ├── assets/
+│   ├── guides/
+│   ├── lineamientos/
+│   └── stories/
 ├── Dockerfile
 ├── docker-compose.yml
 ├── requirements.txt
@@ -287,6 +290,9 @@ El flujo:
 3. El backend genera un JWT
 4. El frontend lo guarda y lo envía en cada petición.
 
+#### Diagrama de Secuencia de Autenticación
+![Diagrama de Secuencia de Autenticación](docs/assets/autenticacion.svg)
+
  7. Endpoints principales
 
 | Módulo | Método | Endpoint | Rol Mínimo | Descripción |
@@ -314,6 +320,14 @@ El flujo:
 | | GET | `/api/v1/waiting_list` | `admin` | Lista los registros de la lista de espera global. |
 | | GET | `/api/v1/waiting_list/{id}` | `admin` | Detalle de un registro de lista de espera. |
 | | GET | `/api/v1/waiting-list/{course_id}` | `user` | Consulta la lista de espera de un curso específico. |
+
+#### Diagramas de Secuencia de Procesos Clave
+
+##### Gestión de Cursos (Rol Admin)
+![Diagrama de Secuencia - Gestión de Cursos](docs/assets/adminCursos.svg)
+
+##### Gestión de Solicitudes (Inscripción de Alumnos y Revisión de Admin)
+![Diagrama de Secuencia - Gestión de Solicitudes](docs/assets/solicitudes.svg)
 
 ---
 8. Testing
@@ -374,6 +388,9 @@ La suite consta de 19 tests divididos en módulos lógicos específicos:
 5. Se devuelve la respuesta formateada con schemas
 6. Alembic mantiene la BD sincronizada
 7. Docker garantiza que todo funcione igual en todos los equipos
+
+#### Diagrama de Arquitectura y Flujo General
+![Diagrama de Arquitectura y Flujo General](docs/assets/diagrama_general.svg)
 ---
 10. Cómo extender el proyecto
 Puedes añadir:
