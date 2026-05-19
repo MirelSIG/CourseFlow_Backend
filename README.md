@@ -1,4 +1,5 @@
-README – Backend CourseFlow (FastAPI + PostgreSQL + Alembic + Docker)
+# README – Backend CourseFlow (FastAPI + PostgreSQL + Alembic + Docker)
+
 1. Introducción
 Este backend implementa la API del proyecto CourseFlow, una plataforma para gestionar cursos, solicitudes de inscripción y listas de espera.
 Está construido con:
