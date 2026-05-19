@@ -16,48 +16,56 @@ Esta es la estructura actual del repositorio backend:
 
 ```text
 CourseFlow_Backend/
-├── app/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── config.py
-│   ├── alembic/
-│   │   └── env_1.py
-│   ├── api/
-│   │   ├── deps.py
-│   │   └── v1/
-│   │       ├── routes_auth.py
-│   │       ├── routes_users.py
-│   │       ├── routes_courses.py
-│   │       ├── routes_applications.py
-│   │       └── routes_waiting_list.py
-│   ├── core/
-│   │   ├── config.py
-│   │   └── security.py
-│   ├── db/
-│   │   ├── base.py
-│   │   └── session.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── user.py
-│   │   ├── course.py
-│   │   ├── application.py
-│   │   └── waiting_list.py
-│   ├── schemas/
-│   │   ├── __init__.py
-│   │   ├── user_schema.py
-│   │   ├── course_schema.py
-│   │   ├── auth_schema.py
-│   │   └── application_schema.py
-│   ├── routes/
-│   │   ├── __init__.py
-│   │   ├── auth.py
-│   │   ├── courses.py
-│   │   └── applications.py
-│   └── utils/
+├── src/
+│   └── app/
 │       ├── __init__.py
-│       └── decorators.py
+│       ├── main.py
+│       ├── config.py
+│       ├── alembic/
+│       │   └── env_1.py
+│       ├── api/
+│       │   ├── deps.py
+│       │   └── v1/
+│       │       ├── routes_auth.py
+│       │       ├── routes_users.py
+│       │       ├── routes_courses.py
+│       │       ├── routes_applications.py
+│       │       └── routes_waiting_list.py
+│       ├── core/
+│       │   ├── config.py
+│       │   └── security.py
+│       ├── db/
+│       │   ├── base.py
+│       │   └── session.py
+│       ├── models/
+│       │   ├── __init__.py
+│       │   ├── user.py
+│       │   ├── course.py
+│       │   ├── application.py
+│       │   └── waiting_list.py
+│       ├── schemas/
+│       │   ├── __init__.py
+│       │   ├── user_schema.py
+│       │   ├── course_schema.py
+│       │   ├── auth_schema.py
+│       │   └── application_schema.py
+│       ├── routes/
+│       │   ├── __init__.py
+│       │   ├── auth.py
+│       │   ├── courses.py
+│       │   └── applications.py
+│       └── utils/
+│           ├── __init__.py
+│           └── decorators.py
 ├── tests/
-│   └── test_health.py
+│   ├── conftest.py
+│   ├── test_admin.py
+│   ├── test_auth.py
+│   ├── test_auth_middleware.py
+│   ├── test_courses.py
+│   ├── test_health.py
+│   ├── test_users.py
+│   └── test_applications.py
 ├── docs/
 ├── project/
 ├── Dockerfile
@@ -237,6 +245,13 @@ Para insertar datos de prueba iniciales (administradores, usuarios, cursos y sol
 sudo docker compose exec backend python scripts/seed.py
 ```
 
+### 🚀 Autoinstalación (Bootstrap) del Superadmin
+El sistema cuenta con un mecanismo de autoinstalación para el rol `superadmin`. Al arrancar el servidor, FastAPI leerá las siguientes variables de entorno:
+- `SUPERADMIN_EMAIL`: Correo electrónico del superadministrador por defecto.
+- `SUPERADMIN_PASSWORD`: Contraseña del superadministrador.
+
+Si están presentes en el entorno (configuradas en el archivo `.env`) y no existe ningún usuario con rol `superadmin` en la base de datos, se creará automáticamente la cuenta de superusuario.
+
 ### 🛠️ Configuración de Conexión en pgAdmin (Paso a Paso)
 Una vez que ingreses a PgAdmin a través de `http://localhost:5051` (o el enlace de IDX) usando las credenciales por defecto, sigue estos pasos para conectarte a la base de datos del proyecto:
 
@@ -261,21 +276,31 @@ El flujo:
 
  7. Endpoints principales
 
-| Módulo | Método | Endpoint |
-|--------|--------|----------|
-| Usuarios | POST | /api/v1/users |
-| Usuarios | GET | /api/v1/users/{id} |
-| Auth | POST | /api/v1/auth/login |
-| Cursos | POST | /api/v1/courses |
-| Cursos | GET | /api/v1/courses |
-| Cursos | GET | /api/v1/courses/{id} |
-| Solicitudes | POST | /api/v1/applications |
-| Solicitudes | GET | /api/v1/applications |
-| Solicitudes | GET | /api/v1/applications/{id} |
-| Lista de espera | POST | /api/v1/waiting_list |
-| Lista de espera | GET | /api/v1/waiting_list |
-| Lista de espera | GET | /api/v1/waiting_list/{id} |
-| Lista de espera | GET | /api/v1/waiting-list/{course_id} |
+| Módulo | Método | Endpoint | Rol Mínimo | Descripción |
+|---|---|---|---|---|
+| **Autenticación** | POST | `/api/v1/auth/login` | Público | Inicia sesión y establece la cookie `access_token` (HttpOnly). |
+| | POST | `/api/v1/auth/logout` | Público | Cierra sesión y revoca/añade a lista negra el token. |
+| **Usuarios** | POST | `/api/v1/users` | Público | Registro de nuevos usuarios alumnos. |
+| | GET | `/api/v1/users/me` | `user` | Obtiene la información del perfil del usuario autenticado. |
+| | PATCH | `/api/v1/users/me` | `user` | Actualiza la información propia del perfil (nombre, email, DNI, edad). |
+| **Cursos** | POST | `/api/v1/courses` | `admin` | Crea un nuevo curso. |
+| | GET | `/api/v1/courses` | `user` | Lista los cursos activos (los admins ven también inactivos). |
+| | GET | `/api/v1/courses/{id}` | `user` | Detalle de un curso específico. |
+| | PUT | `/api/v1/courses/{id}` | `admin` | Actualiza los datos de un curso. |
+| | DELETE | `/api/v1/courses/{id}` | `admin` | Borrado lógico de un curso (marca `is_active = False`). |
+| | GET | `/api/v1/courses/{id}/applications` | `admin` | Obtiene el listado de solicitudes para un curso con datos del alumno. |
+| **Solicitudes** | POST | `/api/v1/applications` | `user` | Crea una postulación a un curso. |
+| | GET | `/api/v1/applications/me` | `user` | Lista las solicitudes de inscripción propias del alumno. |
+| | PATCH | `/api/v1/applications/{id}/status` | `admin` | Acepta o rechaza una postulación (`accepted`, `rejected`). |
+| | DELETE | `/api/v1/applications/{id}` | `user` / `admin` | **Ruta Dual:** Cancelación lógica (alumno) o borrado físico (admin). |
+| **Gestión (Superadmin)** | POST | `/api/admin/users` | `superadmin` | Registra a un nuevo administrador. |
+| | GET | `/api/admin/users` | `superadmin` | Lista los administradores registrados. |
+| | PATCH | `/api/admin/users/{id}` | `superadmin` | Modifica datos de un administrador. |
+| | DELETE | `/api/admin/users/{id}` | `superadmin` | Elimina a un administrador. |
+| **Lista de Espera** | POST | `/api/v1/waiting_list` | `user` | Registra a un usuario en la lista de espera de un curso. |
+| | GET | `/api/v1/waiting_list` | `admin` | Lista los registros de la lista de espera global. |
+| | GET | `/api/v1/waiting_list/{id}` | `admin` | Detalle de un registro de lista de espera. |
+| | GET | `/api/v1/waiting-list/{course_id}` | `user` | Consulta la lista de espera de un curso específico. |
 
 ---
 8. Testing
