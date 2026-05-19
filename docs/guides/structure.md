@@ -8,80 +8,64 @@ Basado en el estado actual del repositorio, esta es la estructura de arquitectur
 
 ```text
 CourseFlow_Backend/
-├── src/
-│   └── app/
+├── src/                          # Código fuente del proyecto
+│   └── app/                      # Aplicación principal FastAPI
 │       ├── __init__.py
-│       ├── main.py
-│       ├── config.py
-│       ├── alembic/
-│       │   └── env_1.py
-│       ├── api/
-│       │   ├── deps.py
-│       │   └── v1/
-│       │       ├── routes_auth.py
-│       │       ├── routes_users.py
-│       │       ├── routes_courses.py
-│       │       ├── routes_applications.py
-│       │       └── routes_waiting_list.py
-│       ├── core/
-│       │   ├── config.py
-│       │   └── security.py
-│       ├── db/
-│       │   ├── base.py
-│       │   └── session.py
-│       ├── models/
+│       ├── main.py               # Punto de entrada de FastAPI
+│       ├── config.py             # Configuración heredada
+│       ├── alembic/              # Directorio de configuración de Alembic
+│       │   └── env_1.py          # Script de entorno de migraciones
+│       ├── api/                  # Controladores y endpoints de la API
+│       │   ├── deps.py           # Dependencias comunes (ej. get_db)
+│       │   └── v1/               # Versión 1 de la API REST
+│       │       ├── routes_auth.py       # Rutas de login y logout con JWT
+│       │       ├── routes_users.py      # Rutas de registro y perfil de usuarios
+│       │       ├── routes_courses.py    # Rutas de CRUD de cursos
+│       │       ├── routes_applications.py # Rutas de solicitudes de inscripción
+│       │       └── routes_waiting_list.py # Rutas de la lista de espera
+│       ├── core/                 # Configuración de seguridad y entorno
+│       │   ├── config.py         # Carga de variables de entorno (.env)
+│       │   └── security.py       # Utilidades de seguridad (hashing y JWT)
+│       ├── db/                   # Inicialización de la base de datos
+│       │   ├── base.py           # Base declarativa de SQLAlchemy
+│       │   └── session.py        # Configuración del engine y sessionmaker
+│       ├── models/               # Modelos SQLAlchemy (Base de Datos)
 │       │   ├── __init__.py
-│       │   ├── user.py
-│       │   ├── course.py
-│       │   ├── application.py
-│       │   └── waiting_list.py
-│       ├── schemas/
+│       │   ├── user.py           # Entidad y relaciones de usuarios
+│       │   ├── course.py         # Entidad y relaciones de cursos
+│       │   ├── application.py    # Entidad de solicitudes de cursos
+│       │   └── waiting_list.py   # Entidad de lista de espera
+│       ├── schemas/              # Esquemas de validación Pydantic
 │       │   ├── __init__.py
-│       │   ├── user_schema.py
-│       │   ├── course_schema.py
-│       │   ├── auth_schema.py
-│       │   └── application_schema.py
-│       ├── routes/
+│       │   ├── user_schema.py    # Validación de datos de usuarios
+│       │   ├── course_schema.py  # Validación de datos de cursos
+│       │   ├── auth_schema.py    # Validación de credenciales y tokens
+│       │   └── application_schema.py # Validación de solicitudes de cursos
+│       ├── routes/               # Rutas heredadas (sin uso actual)
 │       │   ├── __init__.py
 │       │   ├── auth.py
 │       │   ├── courses.py
 │       │   └── applications.py
-│       └── utils/
+│       └── utils/                # Utilidades y funciones auxiliares
 │           ├── __init__.py
-│           └── decorators.py
-├── tests/
-│   ├── conftest.py
-│   ├── test_admin.py
-│   ├── test_auth.py
-│   ├── test_auth_middleware.py
-│   ├── test_courses.py
-│   ├── test_health.py
-│   ├── test_users.py
-│   └── test_applications.py
-├── docs/
-│   ├── assets/
-│   │   ├── entity_relationship_diagram.png
-│   │   ├── autenticacion.svg
-│   │   ├── diagrama_general.svg
-│   │   ├── solicitudes.svg
-│   │   └── adminCursos.svg
-│   ├── guides/
-│   │   ├── deployment.md
-│   │   ├── structure.md
-│   │   ├── testing.md
-│   │   └── workflow.md
-│   ├── lineamientos/
-│   │   ├── 5 - Proyecto Pedagogico_2026.pdf
-│   │   └── Plataforma de Gestión de Cursos y Convocatorias-1.pdf
-│   ├── stories/
-│   │   ├── HU B+DVOPS/
-│   │   └── HU BE/
-│   ├── Proyecto_Pegagogico.md
-│   ├── courseFlow.md
-│   └── description.md
-├── Dockerfile
-├── docker-compose.yml
-├── requirements.txt
-├── README.md
-└── .env.example
+│           └── decorators.py     # Decoradores personalizados
+├── tests/                        # Suite de pruebas unitarias e integración
+│   ├── conftest.py               # Fixtures globales de pytest
+│   ├── test_admin.py             # Pruebas de rutas de administración
+│   ├── test_auth.py              # Pruebas del flujo de autenticación
+│   ├── test_auth_middleware.py   # Pruebas de roles y middleware
+│   ├── test_courses.py           # Pruebas del CRUD de cursos
+│   ├── test_health.py            # Prueba de salud/disponibilidad del servidor
+│   ├── test_users.py             # Pruebas de perfiles de usuario
+│   └── test_applications.py      # Pruebas de solicitudes de inscripción
+├── docs/                         # Documentación organizada del proyecto
+│   ├── assets/                   # Diagramas generales y de secuencia (SVG/PNG)
+│   ├── guides/                   # Guías de despliegue, estructura y testing
+│   ├── lineamientos/             # PDFs de lineamientos del bootcamp
+│   └── stories/                  # Historias de usuario del backlog
+├── Dockerfile                    # Receta de la imagen Docker de la API
+├── docker-compose.yml            # Orquestación de servicios (FastAPI + Postgres)
+├── requirements.txt              # Dependencias del backend
+├── README.md                     # Documentación principal del repositorio
+└── .env.example                  # Plantilla para variables de entorno
 ```
