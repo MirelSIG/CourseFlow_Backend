@@ -5,6 +5,8 @@ from app.models.course import Course
 from app.schemas.course_schema import CourseCreate, CourseUpdate, CourseRead
 from app.utils.decorators import require_auth, require_role
 from app.utils.enums import Role
+from app.models.application import Application
+from app.schemas.application_schema import ApplicationDetailRead
 
 router = APIRouter()
 
@@ -49,6 +51,18 @@ def get_course(
         raise HTTPException(status_code=404, detail="Course not found")
         
     return course
+
+@router.get("/{course_id}/applications", response_model=list[ApplicationDetailRead])
+def get_course_applications(
+    course_id: int,
+    db: Session = Depends(get_db),
+    user: dict = Depends(require_role([Role.ADMIN]))
+):
+    course = db.get(Course, course_id)
+    if not course:
+        raise HTTPException(status_code=404, detail="Course not found")
+        
+    return db.query(Application).filter(Application.course_id == course_id).all()
 
 @router.put("/{course_id}", response_model=CourseRead)
 def update_course(

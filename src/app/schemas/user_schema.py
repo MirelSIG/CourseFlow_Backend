@@ -43,3 +43,26 @@ class AdminCreate(BaseModel):
 class AdminUpdate(BaseModel):
     name: Optional[str] = None
     email: Optional[EmailStr] = None
+
+class UserUpdate(BaseModel):
+    name: Optional[str] = None
+    email: Optional[EmailStr] = None
+    dni_nie: Optional[str] = None
+    birth_date: Optional[date] = None
+
+    @field_validator("dni_nie")
+    def validate_dni_nie(cls, v):
+        if v is None:
+            return v
+        if not re.match(r"^(?:\d{8}[A-Z]|[XYZ]\d{7}[A-Z])$", v, re.IGNORECASE):
+            raise ValueError("Invalid DNI/NIE format")
+        return v.upper()
+
+    @field_validator("birth_date")
+    def validate_age(cls, v):
+        if v is None:
+            return v
+        if v > (date.today() - timedelta(days=18*365.25)):
+            raise ValueError("User must be at least 18 years old")
+        return v
+
