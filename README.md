@@ -225,25 +225,35 @@ erDiagram
 *   **Cursos <-> Solicitudes (1:N):** Un curso puede recibir múltiples solicitudes de inscripción, pero cada solicitud está vinculada a un único curso.
 *   **Relación Muchos a Muchos (M:N):** Los usuarios y los cursos están relacionados indirectamente a través de la tabla `applications`, que actúa como tabla de unión con metadatos adicionales (el estado de la inscripción).
 *   **Lista de Espera:** Vincula usuarios con cursos cuando el cupo está lleno, manteniendo un orden secuencial mediante el campo `position`.
-5. Docker y docker-compose
-Levantar todo el backend:
-```bash
-sudo docker compose up --build -d
-```
-Esto construye la imagen, levanta PostgreSQL, ejecuta las migraciones automáticamente (vía entrypoint) y levanta el contenedor con FastAPI.
 
-Servicios incluidos y puertos expuestos:
-• **backend** → FastAPI (http://localhost:8000/docs)
-• **db** → PostgreSQL (Puerto externo: 5432)
-• **pgadmin** → Interfaz visual para base de datos (http://localhost:5051)
-  - **Usuario:** `admin@admin.com`
-  - **Contraseña:** `admin`
+### 5. Docker y docker-compose
 
-Poblar la base de datos (Seed):
-Para insertar datos de prueba iniciales (administradores, usuarios, cursos y solicitudes), ejecuta:
-```bash
-sudo docker compose exec backend python scripts/seed.py
-```
+### 🚀 Paso a Paso para Levantar el Proyecto
+
+1. **Construir y levantar los contenedores en segundo plano**:
+   ```bash
+   sudo docker compose up --build -d
+   ```
+   *Esto construye la imagen, inicia PostgreSQL, ejecuta las migraciones de Alembic automáticamente a través del entrypoint y levanta el servidor FastAPI.*
+
+2. **Cargar los datos iniciales de prueba (Semilla)**:
+   Una vez que los contenedores estén activos y la base de datos esté lista, ejecuta el script de población:
+   ```bash
+   sudo docker compose exec backend python scripts/seed.py
+   ```
+
+### 🌐 Servicios Incluidos y Puertos Expuestos
+
+*   **backend** → FastAPI y Documentación de la API:
+    *   **Swagger UI:** [http://localhost:8001/docs](http://localhost:8001/docs)
+    *   **ReDoc:** [http://localhost:8001/redoc](http://localhost:8001/redoc)
+*   **db** → PostgreSQL:
+    *   **Puerto interno (Docker net):** `5432`
+    *   **Puerto externo (Host):** `5434` *(mapeado a `5434` para evitar conflictos)*
+*   **pgadmin** → Interfaz gráfica para gestionar la base de datos:
+    *   **Acceso web:** [http://localhost:5051](http://localhost:5051)
+    *   **Usuario:** `admin@admin.com`
+    *   **Contraseña:** `admin`
 
 ### 🚀 Autoinstalación (Bootstrap) del Superadmin
 El sistema cuenta con un mecanismo de autoinstalación para el rol `superadmin`. Al arrancar el servidor, FastAPI leerá las siguientes variables de entorno:
@@ -253,19 +263,20 @@ El sistema cuenta con un mecanismo de autoinstalación para el rol `superadmin`.
 Si están presentes en el entorno (configuradas en el archivo `.env`) y no existe ningún usuario con rol `superadmin` en la base de datos, se creará automáticamente la cuenta de superusuario.
 
 ### 🛠️ Configuración de Conexión en pgAdmin (Paso a Paso)
-Una vez que ingreses a PgAdmin a través de `http://localhost:5051` (o el enlace de IDX) usando las credenciales por defecto, sigue estos pasos para conectarte a la base de datos del proyecto:
+Una vez que ingreses a PgAdmin a través de `http://localhost:5051` usando las credenciales por defecto, sigue estos pasos para conectarte a la base de datos del proyecto:
 
 1. Haz clic derecho en **Servers** -> **Register** -> **Server...**
 2. En la pestaña **General**:
    - **Name:** Escribe `CourseFlow DB` (o el nombre que prefieras).
 3. En la pestaña **Connection**:
-   - **Host name/address:** Escribe `db` *(este es el nombre del servicio de la base de datos en docker-compose, que Docker resolverá internamente)*.
+   - **Host name/address:** Escribe `db` *(nombre del servicio de base de datos en docker-compose, resuelto internamente por Docker)*.
    - **Port:** `5432`
    - **Maintenance database:** `courseflow_db`
    - **Username:** `courseflow`
    - **Password:** `courseflow`
 4. Haz clic en **Save** (Guardar).
-¡Listo! Ya podrás explorar las tablas de usuarios, cursos y solicitudes creadas por las migraciones de Alembic e inspeccionar los datos iniciales.
+
+¡Listo! Ya podrás explorar las tablas de usuarios, cursos y solicitudes creadas por las migraciones de Alembic e inspeccionar los datos iniciales cargados por la semilla.
 
   6. Autenticación (JWT)
 El flujo:
