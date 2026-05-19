@@ -5,6 +5,7 @@ from sqlalchemy.orm import sessionmaker
 from app.db.base import Base
 from app.api.deps import get_db
 from app.main import app
+from fastapi.testclient import TestClient
 
 # Usar una base de datos SQLite específica para pruebas
 SQLALCHEMY_DATABASE_URL = "sqlite:///./test_courseflow.db"
@@ -58,3 +59,7 @@ def override_get_db(db):
     app.dependency_overrides[get_db] = _get_test_db
     yield
     del app.dependency_overrides[get_db]
+
+@pytest.fixture
+def client():
+    return TestClient(app)

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint, Enum as SQLEnum
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint, Enum as SQLEnum, Boolean, Text
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
@@ -14,6 +14,8 @@ class Application(Base):
     user_id = Column(Integer, ForeignKey("users.id", ondelete="CASCADE"), nullable=False)
     course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
     status = Column(SQLEnum(ApplicationStatus), nullable=False, default=ApplicationStatus.PENDING)
+    has_darde = Column(Boolean, nullable=True)
+    previous_education = Column(Text, nullable=True)
     created_at = Column(DateTime(timezone=True), server_default=func.now())
     updated_at = Column(DateTime(timezone=True), onupdate=func.now())
 

@@ -1,0 +1,16 @@
+from pydantic import BaseModel, constr, ConfigDict
+from typing import Optional
+
+class ApplicationBase(BaseModel):
+    course_id: int
+    has_darde: bool
+    previous_education: Optional[constr(max_length=250)] = None
+
+class ApplicationCreate(ApplicationBase):
+    pass
+
+class ApplicationRead(ApplicationBase):
+    id: int
+    user_id: int
+    status: str
+    model_config = ConfigDict(from_attributes=True)
