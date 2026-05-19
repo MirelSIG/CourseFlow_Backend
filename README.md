@@ -149,16 +149,6 @@ Este archivo es la configuración de Alembic.
 *   **Rol**: Actúa como el "cerebro" que permite generar y aplicar migraciones.
 
 ---
-`app/routes/`
-Carpeta creada por tu compañero. Actualmente no se usa, ya que las rutas reales están bajo `api/v1/`.
-*   *Recomendación*: Puedes eliminarla de forma segura o utilizarla para rutas internas no versionadas.
-
----
-`app/utils/`
-Funciones auxiliares y utilidades comunes.
-*   `decorators.py`: Archivo vacío preparado para alojar decoradores personalizados.
-
----
 `tests/`
 Suite de pruebas automáticas con pytest.
 *   `test_health.py`: Verifica la respuesta y disponibilidad del servidor de la API.
