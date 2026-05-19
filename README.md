@@ -121,41 +121,42 @@ Tus nombres personalizados:
 
 `app/core/`
 Configuración central del backend.
-`core/config.py`
-Carga variables de entorno y configuración general.
-`core/security.py`
-Funciones de seguridad:
-• Hash de contraseñas
-• Verificación
-• Generación de JWT
+
+| Archivo | Función / Descripción |
+|---|---|
+| `core/config.py` | Carga variables de entorno y configuración general. |
+| `core/security.py` | Funciones de seguridad: hash de contraseñas, verificación y generación de tokens JWT. |
+
 ---
 `app/db/`
 Conexión a la base de datos.
-`session.py`
-Crea el engine y la sesión SQLAlchemy.
-`base.py`
-Define la clase Base para todos los modelos.
+
+| Archivo | Función / Descripción |
+|---|---|
+| `session.py` | Crea el engine y la sesión de SQLAlchemy. |
+| `base.py` | Define la clase base declarativa para todos los modelos. |
+
 ---
 `app/alembic/env_1.py`
 Este archivo es la configuración de Alembic.
-• Lo creó Alembic automáticamente
-• Tú lo editaste para conectar migraciones con tus modelos
-• Es el “cerebro” que permite generar migraciones
+*   **Origen**: Creado automáticamente por Alembic.
+*   **Propósito**: Editado para conectar las migraciones con tus modelos de datos.
+*   **Rol**: Actúa como el "cerebro" que permite generar y aplicar migraciones.
+
 ---
 `app/routes/`
-Carpeta creada por tu compañero.
-Actualmente no se usa, porque las rutas reales están en api/v1/.
-Puedes:
-• Eliminarla
-• O usarla para rutas internas no versionadas
+Carpeta creada por tu compañero. Actualmente no se usa, ya que las rutas reales están bajo `api/v1/`.
+*   *Recomendación*: Puedes eliminarla de forma segura o utilizarla para rutas internas no versionadas.
+
 ---
 `app/utils/`
-Funciones auxiliares.
-decorators.py está vacío por ahora.
+Funciones auxiliares y utilidades comunes.
+*   `decorators.py`: Archivo vacío preparado para alojar decoradores personalizados.
+
 ---
 `tests/`
-Pruebas automáticas con pytest.
-test_health.py verifica que la API responde.
+Suite de pruebas automáticas con pytest.
+*   `test_health.py`: Verifica la respuesta y disponibilidad del servidor de la API.
 ---
 4. Base de datos y migraciones (Alembic)
 ¿Qué es Alembic?
