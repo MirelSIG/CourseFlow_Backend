@@ -1,3 +1,8 @@
+"""
+Define decoradores y dependencias para el control de acceso y autorización.
+Implementa validación de tokens basada en cookies y un sistema jerárquico de roles.
+"""
+
 import os
 from fastapi import Request, Depends
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
@@ -29,32 +34,32 @@ async def require_auth(
     Dependencia de FastAPI que extrae el token JWT de las cookies del navegador,
     valida su integridad, expiración y si está en la lista negra.
     """
-    # Extraer el token de la cookie
+    # Extrae el token de la cookie.
     token_str = request.cookies.get("access_token")
     
-    # Validar si no se proporcionó el token
+    # Valida si no se proporcionó el token.
     if not token_str:
         error_response(401, "Missing authentication cookie")
         
-    # Verificar si el token ha sido revocado (lista negra en BD)
+    # Verifica si el token ha sido revocado comprobando la lista negra en la base de datos.
     is_blacklisted = db.query(TokenBlacklist).filter(TokenBlacklist.token == token_str).first()
     if is_blacklisted:
         error_response(401, "Token has been revoked")
 
     try:
-        # Decodificar el token usando la clave secreta y el algoritmo
+        # Decodifica el token usando la clave secreta y el algoritmo configurado.
         payload = jwt.decode(token_str, SECRET_KEY, algorithms=[ALGORITHM])
         
-        # Extraer los datos relevantes del payload
+        # Extrae los datos relevantes del payload.
         user_id = payload.get("user_id")
         role = payload.get("role")
         
-        # Validar que los datos existan en el payload
+        # Valida que los datos existan en el payload.
         if user_id is None or role is None:
             error_response(401, "Invalid token payload")
             
-        # Inyectar la identidad en el estado de la petición (request.state)
-        # Esto permite que los controladores accedan al usuario sin decodificar de nuevo
+        # Inyecta la identidad en el estado de la petición (request.state).
+        # Esto permite que los controladores accedan al usuario sin decodificar de nuevo.
         request.state.current_user = {
             "id": user_id,
             "role": role
@@ -72,27 +77,27 @@ def require_role(roles: list[Role]):
     suficientes basados en una lista de roles permitidos y su jerarquía.
     """
     def role_checker(request: Request, user: dict = Depends(require_auth)):
-        # Extraer el rol del usuario que se inyectó en require_auth
+        # Extrae el rol del usuario que se inyectó en la dependencia require_auth.
         user_role = user.get("role")
         
-        # Obtener el nivel numérico del rol del usuario (por defecto 0 si no existe)
+        # Obtiene el nivel numérico del rol del usuario (por defecto 0 si no existe).
         user_level = ROLE_HIERARCHY.get(user_role, 0)
         
-        # Normalizar la lista de roles permitidos (extrayendo su valor en string si es Enum)
+        # Normaliza la lista de roles permitidos obteniendo su valor si es un Enum.
         allowed_roles = [r.value if hasattr(r, "value") else r for r in roles]
         
-        # Obtener el nivel numérico mínimo requerido para acceder a la ruta
+        # Obtiene el nivel numérico mínimo requerido para acceder a la ruta.
         min_required_level = min(
             [ROLE_HIERARCHY.get(r, 99) for r in allowed_roles], 
             default=99
         )
         
-        # Lógica de Jerarquía: Si el nivel del usuario es igual o mayor al mínimo requerido, permite el acceso.
-        # Esto garantiza que un superadmin (nivel 3) pueda entrar a rutas de admin (nivel 2)
+        # Lógica de Jerarquía: si el nivel del usuario es igual o mayor al mínimo requerido, permite el acceso.
+        # Esto garantiza que un superadmin (nivel 3) pueda entrar a rutas de admin (nivel 2).
         if user_level >= min_required_level:
             return user
             
-        # Si no cumple el nivel jerárquico, se devuelve 403 Forbidden genérico
+        # Si no cumple el nivel jerárquico, se retorna un error 403 Forbidden.
         forbidden_error()
         
     return role_checker

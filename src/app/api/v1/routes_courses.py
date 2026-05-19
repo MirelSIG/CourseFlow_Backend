@@ -1,3 +1,8 @@
+"""
+Define los endpoints para la gestión de cursos.
+Permite crear, listar, consultar, actualizar y realizar bajas lógicas de cursos.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.api.deps import get_db
@@ -16,6 +21,10 @@ def create_course(
     db: Session = Depends(get_db),
     user: dict = Depends(require_role([Role.ADMIN]))
 ):
+    """
+    Crea un nuevo curso en el sistema. Requiere privilegios de administrador.
+    Valida que la fecha de finalización sea posterior a la fecha de inicio.
+    """
     if course_in.end_date <= course_in.start_date:
         raise HTTPException(status_code=422, detail="end_date must be strictly after start_date")
         
@@ -30,10 +39,14 @@ def list_courses(
     db: Session = Depends(get_db),
     user: dict = Depends(require_auth)
 ):
-    # Administradores y Superadmins ven todos los cursos
+    """
+    Lista los cursos disponibles.
+    Permite a los administradores ver todos los cursos y a los usuarios estándar solo los activos.
+    """
+    # Administradores y Superadmins ven todos los cursos.
     if user.get("role") in [Role.ADMIN.value, Role.SUPERADMIN.value]:
         return db.query(Course).all()
-    # Usuarios normales solo ven los activos
+    # Usuarios normales solo ven los activos.
     return db.query(Course).filter(Course.is_active.is_(True)).all()
 
 @router.get("/{course_id}", response_model=CourseRead)
@@ -42,11 +55,15 @@ def get_course(
     db: Session = Depends(get_db),
     user: dict = Depends(require_auth)
 ):
+    """
+    Obtiene los detalles de un curso por su identificador.
+    Impide que los usuarios estándar accedan a cursos inactivos.
+    """
     course = db.get(Course, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
         
-    # Un usuario normal no puede ver un curso inactivo
+    # Un usuario normal no puede ver un curso inactivo.
     if user.get("role") == Role.USER.value and not course.is_active:
         raise HTTPException(status_code=404, detail="Course not found")
         
@@ -58,6 +75,9 @@ def get_course_applications(
     db: Session = Depends(get_db),
     user: dict = Depends(require_role([Role.ADMIN]))
 ):
+    """
+    Recupera todas las solicitudes de inscripción asociadas a un curso específico. Requiere privilegios de administrador.
+    """
     course = db.get(Course, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -71,6 +91,10 @@ def update_course(
     db: Session = Depends(get_db),
     user: dict = Depends(require_role([Role.ADMIN]))
 ):
+    """
+    Actualiza la información de un curso existente. Requiere privilegios de administrador.
+    Valida la coherencia de las nuevas fechas de inicio y finalización.
+    """
     course = db.get(Course, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
@@ -94,6 +118,9 @@ def delete_course(
     db: Session = Depends(get_db),
     user: dict = Depends(require_role([Role.ADMIN]))
 ):
+    """
+    Realiza una baja lógica de un curso del sistema cambiando su estado a inactivo. Requiere privilegios de administrador.
+    """
     course = db.get(Course, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")

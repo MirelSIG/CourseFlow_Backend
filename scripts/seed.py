@@ -1,9 +1,14 @@
+"""
+Script de semillado (seeding) para poblar la base de datos con datos de prueba iniciales.
+Incluye la creación de usuarios con diferentes roles, cursos y solicitudes de inscripción.
+"""
+
 import os
 import sys
 import bcrypt
 from datetime import date, timedelta
 
-# Añadir el directorio src al path
+# Añade el directorio src al path de búsqueda de módulos.
 sys.path.append(os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 
 from app.db.session import SessionLocal
@@ -13,27 +18,33 @@ from app.models.application import Application
 from app.utils.enums import Role, ApplicationStatus
 
 def get_password_hash(password: str) -> str:
+    """
+    Genera un hash bcrypt a partir de una contraseña de texto plano.
+    """
     pwd_bytes = password.encode('utf-8')
     salt = bcrypt.gensalt()
     hashed_password = bcrypt.hashpw(password=pwd_bytes, salt=salt)
     return hashed_password.decode('utf-8')
 
 def seed_data():
+    """
+    Inserta datos ficticios de prueba en la base de datos si esta se encuentra vacía.
+    """
     db = SessionLocal()
     
     try:
-        # Check if users already exist
+        # Comprueba si ya existen usuarios registrados para evitar la duplicación de datos.
         if db.query(User).count() > 0:
             print("Database already seeded!")
             return
             
         print("Seeding database...")
         
-        # 1. Crear Admins
+        # 1. Crea usuarios administradores por defecto.
         admin1 = User(name="Admin One", email="admin1@courseflow.com", password=get_password_hash("admin123"), role=Role.ADMIN)
         admin2 = User(name="Super Admin", email="superadmin@courseflow.com", password=get_password_hash("superadmin123"), role=Role.SUPERADMIN)
         
-        # 2. Crear Users
+        # 2. Crea usuarios estándar de prueba.
         users = []
         for i in range(1, 6):
             user = User(
@@ -47,7 +58,7 @@ def seed_data():
         db.add_all([admin1, admin2] + users)
         db.commit()
         
-        # 3. Crear Cursos
+        # 3. Crea los cursos iniciales en la base de datos.
         course1 = Course(
             name="Python Básico",
             description="Aprende los fundamentos de Python",
@@ -75,7 +86,7 @@ def seed_data():
         db.add_all([course1, course2, course3])
         db.commit()
         
-        # 4. Crear Solicitudes (Applications)
+        # 4. Crea solicitudes de inscripción iniciales para los cursos.
         applications = [
             Application(user_id=users[0].id, course_id=course1.id, status=ApplicationStatus.PENDING),
             Application(user_id=users[0].id, course_id=course2.id, status=ApplicationStatus.ACCEPTED),

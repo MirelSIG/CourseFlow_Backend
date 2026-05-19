@@ -1,3 +1,8 @@
+"""
+Agrupa todos los módulos de rutas de API para la versión 1 de la API de CourseFlow.
+Incluye sub-enrutadores para autenticación, usuarios, cursos, solicitudes y listas de espera.
+"""
+
 from fastapi import APIRouter
 
 from app.api.v1 import routes_auth, routes_users, routes_courses, routes_applications, routes_waiting_list

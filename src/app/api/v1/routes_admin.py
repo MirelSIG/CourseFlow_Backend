@@ -1,3 +1,8 @@
+"""
+Define los endpoints de administración para usuarios administradores.
+Restringe el acceso a los superadministradores para crear, listar, actualizar y eliminar administradores.
+"""
+
 from fastapi import APIRouter, Depends, status, Request
 from sqlalchemy.orm import Session
 from app.api.deps import get_db
@@ -8,6 +13,7 @@ from app.schemas.user_schema import AdminCreate, AdminUpdate, UserRead
 from app.core.security import hash_password
 from app.utils.errors import error_response
 
+# Restringe todas las rutas definidas en este enrutador a usuarios con el rol SUPERADMIN.
 router = APIRouter(
     dependencies=[Depends(require_role([Role.SUPERADMIN]))]
 )
@@ -18,9 +24,9 @@ def create_admin(
     db: Session = Depends(get_db)
 ):
     """
-    Crea un nuevo usuario con rol ADMIN. Exclusivo de SUPERADMIN.
+    Crea un nuevo usuario con el rol ADMIN. Requiere permisos de SUPERADMIN.
     """
-    # Validar si el email ya existe
+    # Verifica si el correo electrónico ya está registrado en el sistema.
     existing_user = db.query(User).filter(User.email == admin_in.email).first()
     if existing_user:
         error_response(status.HTTP_400_BAD_REQUEST, "Email already registered")
@@ -41,8 +47,8 @@ def list_admins(
     db: Session = Depends(get_db)
 ):
     """
-    Devuelve la lista de usuarios con rol ADMIN. Exclusivo de SUPERADMIN.
-    Excluye al propio Superadmin y a los usuarios normales.
+    Recupera la lista de todos los usuarios con el rol ADMIN. Requiere permisos de SUPERADMIN.
+    Excluye al propio superadministrador y a los usuarios estándar.
     """
     admins = db.query(User).filter(User.role == Role.ADMIN).all()
     return admins
@@ -54,7 +60,7 @@ def update_admin(
     db: Session = Depends(get_db)
 ):
     """
-    Actualiza datos de un administrador. Exclusivo de SUPERADMIN.
+    Actualiza la información de perfil de un administrador. Requiere permisos de SUPERADMIN.
     """
     admin = db.query(User).filter(User.id == user_id, User.role == Role.ADMIN).first()
     if not admin:
@@ -64,7 +70,7 @@ def update_admin(
         admin.name = admin_in.name
         
     if admin_in.email is not None:
-        # Validar si el email ya pertenece a otro usuario
+        # Valida si el correo electrónico ya está asignado a un usuario diferente.
         email_owner = db.query(User).filter(User.email == admin_in.email, User.id != user_id).first()
         if email_owner:
             error_response(status.HTTP_400_BAD_REQUEST, "Email already registered")
@@ -81,14 +87,14 @@ def delete_admin(
     db: Session = Depends(get_db)
 ):
     """
-    Elimina a un administrador. Exclusivo de SUPERADMIN.
-    Evita la auto-eliminación.
+    Elimina a un administrador del sistema. Requiere permisos de SUPERADMIN.
+    Evita la autoeliminación del superadministrador activo.
     """
-    # Extraer el ID del superadmin actual desde el estado de la petición
+    # Extrae el ID del superadministrador actual desde el estado de la petición.
     current_user = request.state.current_user
     current_user_id = current_user.get("id")
     
-    # Validar que el superadmin no se esté auto-eliminando
+    # Evita que el superadministrador se elimine a sí mismo.
     if user_id == current_user_id:
         error_response(status.HTTP_400_BAD_REQUEST, "El superadmin no puede eliminarse a sí mismo")
         

@@ -1,3 +1,8 @@
+"""
+Define los endpoints para la gestión de solicitudes de inscripción (Applications).
+Permite crear solicitudes, listar las propias peticiones, actualizar estados y eliminar/cancelar solicitudes.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
 from app.api.deps import get_db
@@ -17,6 +22,11 @@ def create_application(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_auth),
 ):
+    """
+    Crea una nueva solicitud de inscripción para un curso.
+    Valida la existencia y vigencia del DNI/NIE del usuario, la mayoría de edad del solicitante,
+    la vigencia del período de inscripción del curso, que no existan solicitudes duplicadas y la capacidad máxima del curso.
+    """
     user_id = current_user.get("id")
     user = db.get(User, user_id)
     if not user:
@@ -25,7 +35,7 @@ def create_application(
             detail="User not found"
         )
 
-    # Validate DNI/NIE
+    # Valida la existencia de DNI/NIE en el perfil del usuario.
     if not user.dni_nie:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -39,7 +49,7 @@ def create_application(
             detail="User DNI/NIE has an invalid format"
         )
 
-    # Validate birth_date (age >= 18)
+    # Valida la fecha de nacimiento (edad mínima de 18 años).
     if not user.birth_date:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
@@ -55,7 +65,7 @@ def create_application(
 
     course = db.get(Course, application_in.course_id)
 
-    # 1. Validation of dates and visibility
+    # 1. Validación de fechas y estado activo del curso.
     if not course or not course.is_active:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Course not available"
@@ -66,7 +76,7 @@ def create_application(
             detail="Application period has ended",
         )
 
-    # 2. Unique inscription validation
+    # 2. Validación de solicitud única (impide duplicados).
     existing_application = (
         db.query(Application)
         .filter(
@@ -81,7 +91,7 @@ def create_application(
             detail="You have already applied to this course",
         )
 
-    # 3. Capacity control
+    # 3. Control de capacidad del curso (cupo disponible).
     accepted_count = (
         db.query(Application)
         .filter(
@@ -95,7 +105,7 @@ def create_application(
             status_code=status.HTTP_400_BAD_REQUEST, detail="Course is full"
         )
 
-    # Create application
+    # Crea y registra la solicitud de inscripción.
     app_obj = Application(
         **application_in.model_dump(), user_id=user_id, status=ApplicationStatus.PENDING
     )
@@ -110,7 +120,7 @@ def get_my_applications(
     current_user: dict = Depends(require_auth),
 ):
     """
-    Listar solicitudes del usuario autenticado con nombre del curso y estado actual.
+    Lista las solicitudes del usuario autenticado actual con su estado de procesamiento.
     """
     user_id = current_user.get("id")
     return db.query(Application).filter(Application.user_id == user_id).all()
@@ -122,6 +132,9 @@ def update_application_status(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_role([Role.ADMIN])),
 ):
+    """
+    Actualiza el estado de una solicitud de inscripción específica. Requiere privilegios de administrador.
+    """
     app_obj = db.get(Application, app_id)
     if not app_obj:
         raise HTTPException(
@@ -140,6 +153,10 @@ def delete_application(
     db: Session = Depends(get_db),
     current_user: dict = Depends(require_auth),
 ):
+    """
+    Elimina físicamente una solicitud si es administrador o superadministrador.
+    Realiza una cancelación lógica si la petición proviene del propio usuario solicitante.
+    """
     app_obj = db.get(Application, app_id)
     if not app_obj:
         raise HTTPException(
@@ -150,13 +167,13 @@ def delete_application(
     user_id = current_user.get("id")
 
     if user_role in [Role.ADMIN.value, Role.SUPERADMIN.value]:
-        # Physical delete
+        # Realiza eliminación física en la base de datos si es administrador.
         db.delete(app_obj)
         db.commit()
         response.status_code = status.HTTP_204_NO_CONTENT
         return None
     else:
-        # Soft cancel
+        # Realiza cancelación lógica si es el propio usuario solicitante.
         if app_obj.user_id != user_id:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,

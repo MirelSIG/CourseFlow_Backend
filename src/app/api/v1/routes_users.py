@@ -1,3 +1,8 @@
+"""
+Define los endpoints de perfil de usuario.
+Proporciona funcionalidades para recuperar y actualizar el perfil del usuario actualmente autenticado.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.api.deps import get_db
@@ -13,7 +18,7 @@ def get_me(
     current_user: dict = Depends(require_auth)
 ):
     """
-    Retorna el perfil del usuario autenticado actual.
+    Retorna la información del perfil del usuario actualmente autenticado.
     """
     user_id = current_user.get("id")
     user = db.get(User, user_id)
@@ -28,7 +33,7 @@ def update_me(
     current_user: dict = Depends(require_auth)
 ):
     """
-    Actualiza datos de perfil del usuario autenticado actual.
+    Actualiza la información del perfil del usuario actualmente autenticado.
     """
     user_id = current_user.get("id")
     user = db.get(User, user_id)
@@ -36,7 +41,7 @@ def update_me(
         raise HTTPException(status_code=404, detail="User not found")
 
     if user_in.email is not None and user_in.email != user.email:
-        # Validar si el email ya existe
+        # Valida si la dirección de correo electrónico ya está registrada por otro usuario.
         existing_user = db.query(User).filter(User.email == user_in.email).first()
         if existing_user:
             raise HTTPException(status_code=400, detail="Email already registered")

@@ -1,3 +1,9 @@
+"""
+Configuración del entorno de migraciones de Alembic.
+Establece la conexión a la base de datos a partir de las variables de entorno
+y configura la detección automática de metadatos de los modelos del sistema.
+"""
+
 from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config
@@ -8,21 +14,18 @@ import os
 import sys
 from dotenv import load_dotenv
 
-# Añadir el directorio src al PYTHONPATH
+# Añade el directorio src al path de búsqueda de módulos.
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(__file__)), "src"))
 load_dotenv()
 
-# this is the Alembic Config object, which provides
-# access to the values within the .ini file in use.
+# Objeto de configuración de Alembic, que proporciona acceso a los valores del archivo .ini.
 config = context.config
 
-# Interpret the config file for Python logging.
-# This line sets up loggers basically.
+# Interpreta el archivo de configuración para configurar los loggers.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-# add your model's MetaData object here
-# for 'autogenerate' support
+# Añade el objeto MetaData de los modelos para soporte de generación automática ('autogenerate').
 from app.db.base import Base
 from app.models.user import User
 from app.models.course import Course
@@ -30,28 +33,16 @@ from app.models.application import Application
 
 target_metadata = Base.metadata
 
-# Set sqlalchemy.url from the environment variable
+# Establece la URL de conexión de SQLAlchemy a partir de la variable de entorno.
 database_url = os.environ.get("DATABASE_URL", "sqlite:///./courseflow.db")
 if database_url:
     config.set_main_option("sqlalchemy.url", database_url)
 
-# other values from the config, defined by the needs of env.py,
-# can be acquired:
-# my_important_option = config.get_main_option("my_important_option")
-# ... etc.
-
 
 def run_migrations_offline() -> None:
-    """Run migrations in 'offline' mode.
-
-    This configures the context with just a URL
-    and not an Engine, though an Engine is acceptable
-    here as well.  By skipping the Engine creation
-    we don't even need a DBAPI to be available.
-
-    Calls to context.execute() here emit the given string to the
-    script output.
-
+    """
+    Ejecuta las migraciones en modo 'offline' (sin conexión directa a la base de datos).
+    Configura el contexto únicamente con una URL de conexión.
     """
     url = config.get_main_option("sqlalchemy.url")
     context.configure(
@@ -66,11 +57,9 @@ def run_migrations_offline() -> None:
 
 
 def run_migrations_online() -> None:
-    """Run migrations in 'online' mode.
-
-    In this scenario we need to create an Engine
-    and associate a connection with the context.
-
+    """
+    Ejecuta las migraciones en modo 'online' (conectándose directamente a la base de datos).
+    Crea un motor de conexión y lo asocia al contexto de ejecución de Alembic.
     """
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),

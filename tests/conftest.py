@@ -1,3 +1,8 @@
+"""
+Configura los accesorios (fixtures) globales de pytest para la suite de pruebas.
+Sobrescribe la conexión de base de datos para utilizar un entorno SQLite aislado de pruebas.
+"""
+
 import pytest
 import os
 from sqlalchemy import create_engine
@@ -62,4 +67,7 @@ def override_get_db(db):
 
 @pytest.fixture
 def client():
+    """
+    Proporciona un cliente de pruebas TestClient para interactuar con la aplicación FastAPI.
+    """
     return TestClient(app)

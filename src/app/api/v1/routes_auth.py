@@ -1,3 +1,8 @@
+"""
+Define los endpoints para el flujo de autenticación de la aplicación (registro, inicio y cierre de sesión).
+Utiliza cookies HttpOnly para el almacenamiento seguro del token JWT.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status, Request, Response
 from sqlalchemy.orm import Session
 from app.api.deps import get_db
@@ -10,11 +15,15 @@ from app.utils.decorators import require_auth
 
 router = APIRouter()
 
-# Nombre de la cookie para el token
+# Nombre de la cookie para almacenar el token de acceso.
 COOKIE_NAME = "access_token"
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
+    """
+    Registra un nuevo usuario en el sistema.
+    Valida que el correo electrónico no esté previamente registrado.
+    """
     exists = db.query(User).filter(User.email == user_in.email).first()
     if exists:
         raise HTTPException(
@@ -35,6 +44,10 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
 
 @router.post("/login")
 def login(data: LoginRequest, response: Response, db: Session = Depends(get_db)):
+    """
+    Autentica a un usuario verificando sus credenciales de acceso.
+    Genera un token JWT y lo almacena en una cookie HttpOnly para mayor seguridad.
+    """
     user = db.query(User).filter(User.email == data.email).first()
     if not user or not verify_password(data.password, user.password):
         raise HTTPException(
@@ -44,30 +57,34 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
 
     token = create_access_token({"user_id": user.id, "role": user.role})
     
-    # Establecer la cookie HttpOnly
+    # Establece la cookie HttpOnly en la respuesta HTTP.
     response.set_cookie(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=False,  # Cambiar a True en producción con HTTPS
+        secure=False,  # Debe cambiarse a True en producción bajo HTTPS.
         samesite="lax",
-        max_age=3600  # 1 hora
+        max_age=3600  # Duración de 1 hora.
     )
     
     return {"message": "Logged in successfully"}
 
 @router.post("/logout")
 def logout(request: Request, response: Response, db: Session = Depends(get_db), user: dict = Depends(require_auth)):
-    # Extraer el token de las cookies para invalidarlo
+    """
+    Cierra la sesión del usuario invalidando el token actual.
+    Registra el token en la lista negra (TokenBlacklist) y elimina la cookie del navegador.
+    """
+    # Extrae el token de las cookies para invalidarlo.
     token = request.cookies.get(COOKIE_NAME)
     
     if token:
-        # Registrar el token en la lista negra
+        # Registra el token en la lista negra para evitar su reutilización.
         blacklisted = TokenBlacklist(token=token)
         db.add(blacklisted)
         db.commit()
     
-    # Eliminar la cookie del navegador
+    # Elimina la cookie de sesión en el navegador.
     response.delete_cookie(COOKIE_NAME)
     
     return {"message": "Logged out successfully"}

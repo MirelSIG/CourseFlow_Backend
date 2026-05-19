@@ -1,3 +1,8 @@
+"""
+Define funciones auxiliares para el manejo y estandarización de respuestas de error.
+Facilita el lanzamiento de excepciones HTTP consistentes en toda la aplicación.
+"""
+
 from fastapi import HTTPException, status
 
 def error_response(code: int, message: str):

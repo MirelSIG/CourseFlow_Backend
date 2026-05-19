@@ -1,3 +1,8 @@
+"""
+Define las pruebas unitarias y de integración para la gestión de perfiles de usuario.
+Cubre escenarios de consulta de perfil, actualización de datos y resolución de conflictos de correos duplicados.
+"""
+
 import pytest
 from fastapi.testclient import TestClient
 from app.models.user import User
@@ -6,10 +11,16 @@ from app.core.security import hash_password
 from tests.test_auth_middleware import generate_token
 
 def test_get_me_unauthorized(client: TestClient):
+    """
+    Verifica que el acceso al perfil sin autenticación retorne un error HTTP 401.
+    """
     res = client.get("/api/v1/users/me")
     assert res.status_code == 401
 
 def test_get_me_success(client: TestClient, db):
+    """
+    Verifica la recuperación exitosa del perfil del usuario autenticado actual y la exclusión del hash de contraseña.
+    """
     user = User(
         name="Profile Tester",
         email="profile@example.com",
@@ -29,6 +40,9 @@ def test_get_me_success(client: TestClient, db):
     assert "password_hash" not in data
 
 def test_patch_me_success(client: TestClient, db):
+    """
+    Verifica la actualización exitosa de los campos de perfil del usuario autenticado.
+    """
     user = User(
         name="Old Name",
         email="old@example.com",
@@ -52,6 +66,9 @@ def test_patch_me_success(client: TestClient, db):
     assert data["dni_nie"] == "12345678Z"
 
 def test_patch_me_email_conflict(client: TestClient, db):
+    """
+    Verifica que no se permita actualizar el perfil con un correo electrónico que ya pertenece a otro usuario.
+    """
     user1 = User(
         name="User One",
         email="user1@example.com",
@@ -80,6 +97,9 @@ def test_patch_me_email_conflict(client: TestClient, db):
     assert "Email already registered" in res.json()["detail"]
 
 def test_superadmin_bootstrap(db, monkeypatch):
+    """
+    Verifica que el superadministrador por defecto sea creado durante el arranque de la aplicación a partir de variables de entorno.
+    """
     from app.core.config import settings
     from app.main import on_startup
     

@@ -313,6 +313,149 @@ El flujo:
 | | GET | `/api/v1/waiting_list/{id}` | `admin` | Detalle de un registro de lista de espera. |
 | | GET | `/api/v1/waiting-list/{course_id}` | `user` | Consulta la lista de espera de un curso específico. |
 
+### 🧪 Ejemplos de Comandos cURL para Pruebas (Importables en Postman)
+
+Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente en **Postman** (File -> Import -> Paste Raw Text / cURL).
+
+> [!NOTE]
+> Dado que la autenticación utiliza cookies seguras `HttpOnly` (`access_token`), en cURL se utiliza el archivo `cookies.txt` (con los parámetros `-c` para guardar y `-b` para enviar la cookie) para mantener la sesión activa entre peticiones. En Postman, la cookie se gestiona y guarda automáticamente en el cliente tras hacer login.
+
+#### 1. Autenticación y Registro
+
+*   **Registrar un nuevo usuario alumno:**
+    ```bash
+    curl -X POST http://localhost:8001/api/v1/auth/register \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Juan Perez",
+        "email": "juan.perez@example.com",
+        "password": "mi_password_segura",
+        "dni_nie": "12345678Z",
+        "birth_date": "2000-01-01"
+      }'
+    ```
+
+*   **Iniciar sesión (Login):**
+    *Inicia sesión y guarda la cookie de sesión en un archivo `cookies.txt` local:*
+    ```bash
+    curl -X POST http://localhost:8001/api/v1/auth/login \
+      -c cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "juan.perez@example.com",
+        "password": "mi_password_segura"
+      }'
+    ```
+
+*   **Cerrar sesión (Logout):**
+    *Envía la cookie para revocar el token de sesión:*
+    ```bash
+    curl -X POST http://localhost:8001/api/v1/auth/logout \
+      -b cookies.txt \
+      -c cookies.txt
+    ```
+
+#### 2. Gestión de Perfil (Requiere Login)
+
+*   **Obtener perfil del usuario actual:**
+    ```bash
+    curl -X GET http://localhost:8001/api/v1/users/me \
+      -b cookies.txt
+    ```
+
+*   **Actualizar datos del perfil:**
+    ```bash
+    curl -X PATCH http://localhost:8001/api/v1/users/me \
+      -b cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Juan Perez Modificado"
+      }'
+    ```
+
+#### 3. Cursos (Requiere Rol Admin para Crear/Modificar)
+
+*   **Crear un nuevo curso (Login previo como Admin):**
+    *Inicia sesión primero con `admin1@courseflow.com` (contraseña: `admin123`) o `superadmin@courseflow.com` (contraseña: `superadmin123`):*
+    ```bash
+    # 1. Login de Admin
+    curl -X POST http://localhost:8001/api/v1/auth/login \
+      -c cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "email": "admin1@courseflow.com",
+        "password": "admin123"
+      }'
+
+    # 2. Crear Curso
+    curl -X POST http://localhost:8001/api/v1/courses/ \
+      -b cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "name": "Curso de Docker y Kubernetes",
+        "description": "Aprende contenedores desde cero",
+        "start_date": "2026-06-01",
+        "end_date": "2026-07-15",
+        "capacity": 25,
+        "is_active": true
+      }'
+    ```
+
+*   **Listar cursos disponibles (Accesible por usuarios alumnos):**
+    ```bash
+    curl -X GET http://localhost:8001/api/v1/courses/ \
+      -b cookies.txt
+    ```
+
+#### 4. Solicitudes de Inscripción (Applications)
+
+*   **Postular a un curso (Como usuario alumno):**
+    *Recuerda que debes estar logueado como un usuario alumno regular:*
+    ```bash
+    curl -X POST http://localhost:8001/api/v1/applications/ \
+      -b cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "course_id": 1,
+        "has_darde": true,
+        "previous_education": "Educación Secundaria Obligatoria"
+      }'
+    ```
+
+*   **Listar mis solicitudes de inscripción propias:**
+    ```bash
+    curl -X GET http://localhost:8001/api/v1/applications/me \
+      -b cookies.txt
+    ```
+
+*   **Aceptar/Rechazar solicitud (Solo Admin/Superadmin):**
+    ```bash
+    curl -X PATCH http://localhost:8001/api/v1/applications/1/status \
+      -b cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "status": "accepted"
+      }'
+    ```
+
+#### 5. Lista de Espera (Waiting List)
+
+*   **Inscribirse en la lista de espera de un curso:**
+    ```bash
+    curl -X POST http://localhost:8001/api/v1/waiting_list \
+      -b cookies.txt \
+      -H "Content-Type: application/json" \
+      -d '{
+        "course_id": 1
+      }'
+    ```
+
+*   **Consultar la lista de espera de un curso específico (Alumno):**
+    ```bash
+    curl -X GET http://localhost:8001/api/v1/waiting-list/1 \
+      -b cookies.txt
+    ```
+
 #### Diagramas de Secuencia de Procesos Clave
 
 ##### Gestión de Cursos (Rol Admin)

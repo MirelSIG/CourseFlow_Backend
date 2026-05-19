@@ -1,3 +1,8 @@
+"""
+Define los endpoints para gestionar la lista de espera de los cursos.
+Permite añadir usuarios a la lista de espera y consultar los usuarios en espera ordenados por posición.
+"""
+
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from sqlalchemy import func
@@ -8,6 +13,10 @@ router = APIRouter()
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def add_to_waiting_list(user_id: int, course_id: int, db: Session = Depends(get_db)):
+    """
+    Añade un usuario a la lista de espera de un curso específico.
+    Calcula de manera dinámica la siguiente posición de espera disponible en la cola.
+    """
     max_pos = (
         db.query(func.max(WaitingList.position))
         .filter(WaitingList.course_id == course_id)
@@ -27,6 +36,9 @@ def add_to_waiting_list(user_id: int, course_id: int, db: Session = Depends(get_
 
 @router.get("/{course_id}")
 def list_waiting_list(course_id: int, db: Session = Depends(get_db)):
+    """
+    Recupera los registros de la lista de espera de un curso específico, ordenados de menor a mayor posición.
+    """
     return (
         db.query(WaitingList)
         .filter(WaitingList.course_id == course_id)
