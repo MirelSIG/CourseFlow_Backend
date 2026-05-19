@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.models.application import Application
 from app.models.course import Course
+from app.models.user import User
 from app.schemas.application_schema import ApplicationCreate, ApplicationRead, ApplicationStatusUpdate
 from app.utils.decorators import require_auth, require_role
 from app.utils.enums import Role, ApplicationStatus
@@ -17,6 +18,41 @@ def create_application(
     current_user: dict = Depends(require_auth),
 ):
     user_id = current_user.get("id")
+    user = db.get(User, user_id)
+    if not user:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="User not found"
+        )
+
+    # Validate DNI/NIE
+    if not user.dni_nie:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User must have a registered DNI/NIE to apply"
+        )
+    
+    import re
+    if not re.match(r"^(?:\d{8}[A-Z]|[XYZ]\d{7}[A-Z])$", user.dni_nie, re.IGNORECASE):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User DNI/NIE has an invalid format"
+        )
+
+    # Validate birth_date (age >= 18)
+    if not user.birth_date:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User must have a registered birth date to apply"
+        )
+    
+    from datetime import timedelta
+    if user.birth_date > (date.today() - timedelta(days=18*365.25)):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="User must be at least 18 years old to apply"
+        )
+
     course = db.get(Course, application_in.course_id)
 
     # 1. Validation of dates and visibility

@@ -318,10 +318,27 @@ El flujo:
 El proyecto cuenta con una suite completa de pruebas unitarias y de integración que validan el comportamiento lógico y la seguridad de las API.
 
 ### Comando para ejecutar las pruebas:
-Para ejecutar la suite completa de pruebas unitarias y de integración de la forma más rápida y sencilla, ejecuta este comando en tu terminal:
 
+Puedes ejecutar las pruebas de dos maneras diferentes:
+
+#### Opción A: En tu entorno local (rápido)
+Si tienes el entorno virtual de Python instalado localmente:
 ```bash
 venv/bin/pytest
+```
+Para ver el reporte de cobertura de código (coverage):
+```bash
+venv/bin/pytest --cov=src/app
+```
+
+#### Opción B: Dentro del contenedor de Docker (Entorno Aislado)
+Si quieres correr las pruebas directamente en los contenedores de Docker activos:
+```bash
+sudo docker compose exec backend pytest
+```
+Para ver el reporte de cobertura de código (coverage) dentro de Docker:
+```bash
+sudo docker compose exec backend pytest --cov=app
 ```
 
 

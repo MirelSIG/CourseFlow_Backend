@@ -14,19 +14,25 @@ def test_users(db):
         name="Student User",
         email="student@example.com",
         password=hash_password("password123"),
-        role=Role.USER.value
+        role=Role.USER.value,
+        dni_nie="12345678Z",
+        birth_date=date(2000, 1, 1)
     )
     admin = User(
         name="Admin User",
         email="admin_app@example.com",
         password=hash_password("password123"),
-        role=Role.ADMIN.value
+        role=Role.ADMIN.value,
+        dni_nie="87654321X",
+        birth_date=date(1990, 5, 5)
     )
     other = User(
         name="Other Student",
         email="other@example.com",
         password=hash_password("password123"),
-        role=Role.USER.value
+        role=Role.USER.value,
+        dni_nie="12345677A",
+        birth_date=date(1995, 10, 10)
     )
     db.add(user)
     db.add(admin)
@@ -92,7 +98,9 @@ def test_create_application_capacity_limit(client: TestClient, db, test_users, t
         name="Third Student",
         email="third@example.com",
         password=hash_password("password123"),
-        role=Role.USER.value
+        role=Role.USER.value,
+        dni_nie="23456789W",
+        birth_date=date(2001, 2, 2)
     )
     db.add(third_user)
     db.commit()
@@ -193,3 +201,95 @@ def test_delete_application_admin_physical_delete(client: TestClient, db, test_u
 
     # Verify physical deletion
     assert db.get(Application, app.id) is None
+
+def test_create_application_missing_dni(client: TestClient, db, test_course):
+    # User with no DNI
+    user = User(
+        name="No DNI User",
+        email="nodni@example.com",
+        password=hash_password("password123"),
+        role=Role.USER.value,
+        birth_date=date(2000, 1, 1),
+        dni_nie=None
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = generate_token(user.id, Role.USER.value)
+    res = client.post(
+        "/api/v1/applications/",
+        json={"course_id": test_course.id, "has_darde": True},
+        cookies={"access_token": token}
+    )
+    assert res.status_code == 400
+    assert "DNI/NIE" in res.json()["detail"]
+
+def test_create_application_invalid_dni_format(client: TestClient, db, test_course):
+    # User with invalid DNI format (doesn't trigger schema because it's set directly in DB)
+    user = User(
+        name="Invalid DNI User",
+        email="validdni@example.com",
+        password=hash_password("password123"),
+        role=Role.USER.value,
+        birth_date=date(2000, 1, 1),
+        dni_nie="12345Z"  # Invalid format
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = generate_token(user.id, Role.USER.value)
+    res = client.post(
+        "/api/v1/applications/",
+        json={"course_id": test_course.id, "has_darde": True},
+        cookies={"access_token": token}
+    )
+    assert res.status_code == 400
+    assert "DNI/NIE" in res.json()["detail"]
+
+def test_create_application_missing_birth_date(client: TestClient, db, test_course):
+    # User with no birth date
+    user = User(
+        name="No Birth Date User",
+        email="nobirth@example.com",
+        password=hash_password("password123"),
+        role=Role.USER.value,
+        dni_nie="12345678Z",
+        birth_date=None
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = generate_token(user.id, Role.USER.value)
+    res = client.post(
+        "/api/v1/applications/",
+        json={"course_id": test_course.id, "has_darde": True},
+        cookies={"access_token": token}
+    )
+    assert res.status_code == 400
+    assert "birth date" in res.json()["detail"]
+
+def test_create_application_underage(client: TestClient, db, test_course):
+    # User who is under 18 years old
+    user = User(
+        name="Underage User",
+        email="underage@example.com",
+        password=hash_password("password123"),
+        role=Role.USER.value,
+        dni_nie="12345678Z",
+        birth_date=date.today() - timedelta(days=17 * 365)  # 17 years old
+    )
+    db.add(user)
+    db.commit()
+    db.refresh(user)
+
+    token = generate_token(user.id, Role.USER.value)
+    res = client.post(
+        "/api/v1/applications/",
+        json={"course_id": test_course.id, "has_darde": True},
+        cookies={"access_token": token}
+    )
+    assert res.status_code == 400
+    assert "at least 18 years old" in res.json()["detail"]
