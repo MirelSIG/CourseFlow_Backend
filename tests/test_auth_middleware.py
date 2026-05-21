@@ -11,8 +11,19 @@ from jose import jwt
 
 from app.utils.decorators import require_auth, require_role, SECRET_KEY, ALGORITHM
 from app.utils.enums import Role
+from app.api.deps import get_db
 
 app = FastAPI()
+
+@pytest.fixture(autouse=True)
+def override_middleware_db(db):
+    """
+    Sobrescribe la dependencia get_db de FastAPI local de middleware para usar la BD de tests.
+    """
+    app.dependency_overrides[get_db] = lambda: db
+    yield
+    del app.dependency_overrides[get_db]
+
 
 @app.get("/protected")
 def protected_route(user=Depends(require_auth)):

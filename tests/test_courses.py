@@ -149,3 +149,55 @@ def test_list_courses_filters(admin_token, user_token):
     names_admin = [c["name"] for c in admin_list.json()]
     assert "Active Course" in names_admin
     assert "Inactive Course" in names_admin
+
+def test_list_courses_unauthenticated(admin_token):
+    """
+    Verifica que un usuario no autenticado pueda listar los cursos y solo vea los activos.
+    """
+    # Crea un curso activo y uno inactivo para verificar el filtrado.
+    client.post(
+        "/api/v1/courses/",
+        json={"name": "Public Active Course", "start_date": "2026-01-01", "end_date": "2026-02-01", "is_active": True},
+        cookies=admin_token
+    )
+    client.post(
+        "/api/v1/courses/",
+        json={"name": "Public Inactive Course", "start_date": "2026-01-01", "end_date": "2026-02-01", "is_active": False},
+        cookies=admin_token
+    )
+
+    # 1. Recupera el listado sin cookies de sesión (no autenticado).
+    res = client.get("/api/v1/courses/")
+    assert res.status_code == 200
+    names = [c["name"] for c in res.json()]
+    assert "Public Active Course" in names
+    assert "Public Inactive Course" not in names
+
+def test_get_course_unauthenticated(admin_token):
+    """
+    Verifica que un usuario no autenticado pueda obtener detalles de un curso activo pero no de uno inactivo.
+    """
+    # 1. Crea curso activo.
+    res_active = client.post(
+        "/api/v1/courses/",
+        json={"name": "Unauth Active Course", "start_date": "2026-01-01", "end_date": "2026-02-01", "is_active": True},
+        cookies=admin_token
+    )
+    active_id = res_active.json()["id"]
+
+    # 2. Crea curso inactivo.
+    res_inactive = client.post(
+        "/api/v1/courses/",
+        json={"name": "Unauth Inactive Course", "start_date": "2026-01-01", "end_date": "2026-02-01", "is_active": False},
+        cookies=admin_token
+    )
+    inactive_id = res_inactive.json()["id"]
+
+    # 3. Intenta obtener detalles del curso activo sin estar autenticado.
+    res_active_get = client.get(f"/api/v1/courses/{active_id}")
+    assert res_active_get.status_code == 200
+    assert res_active_get.json()["name"] == "Unauth Active Course"
+
+    # 4. Intenta obtener detalles del curso inactivo sin estar autenticado.
+    res_inactive_get = client.get(f"/api/v1/courses/{inactive_id}")
+    assert res_inactive_get.status_code == 404

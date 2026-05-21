@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.api.deps import get_db
 from app.models.course import Course
 from app.schemas.course_schema import CourseCreate, CourseUpdate, CourseRead
-from app.utils.decorators import require_auth, require_role
+from app.utils.decorators import require_auth, require_role, optional_auth
 from app.utils.enums import Role
 from app.models.application import Application
 from app.schemas.application_schema import ApplicationDetailRead
@@ -37,12 +37,16 @@ def create_course(
 @router.get("/", response_model=list[CourseRead])
 def list_courses(
     db: Session = Depends(get_db),
-    user: dict = Depends(require_auth)
+    user: dict | None = Depends(optional_auth)
 ):
     """
     Lista los cursos disponibles.
-    Permite a los administradores ver todos los cursos y a los usuarios estándar solo los activos.
+    Permite a los administradores ver todos los cursos, y a los usuarios estándar
+    o no autenticados ver solo los activos.
     """
+    # Si no está autenticado, solo ve los activos.
+    if not user:
+        return db.query(Course).filter(Course.is_active.is_(True)).all()
     # Administradores y Superadmins ven todos los cursos.
     if user.get("role") in [Role.ADMIN.value, Role.SUPERADMIN.value]:
         return db.query(Course).all()
@@ -53,19 +57,20 @@ def list_courses(
 def get_course(
     course_id: int, 
     db: Session = Depends(get_db),
-    user: dict = Depends(require_auth)
+    user: dict | None = Depends(optional_auth)
 ):
     """
     Obtiene los detalles de un curso por su identificador.
-    Impide que los usuarios estándar accedan a cursos inactivos.
+    Impide que los usuarios estándar y visitantes no autenticados accedan a cursos inactivos.
     """
     course = db.get(Course, course_id)
     if not course:
         raise HTTPException(status_code=404, detail="Course not found")
         
-    # Un usuario normal no puede ver un curso inactivo.
-    if user.get("role") == Role.USER.value and not course.is_active:
-        raise HTTPException(status_code=404, detail="Course not found")
+    # Si no está autenticado o es un usuario normal, no puede ver un curso inactivo.
+    if not user or user.get("role") == Role.USER.value:
+        if not course.is_active:
+            raise HTTPException(status_code=404, detail="Course not found")
         
     return course
 

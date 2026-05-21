@@ -101,3 +101,37 @@ def require_role(roles: list[Role]):
         forbidden_error()
         
     return role_checker
+
+async def optional_auth(
+    request: Request, 
+    db: Session = Depends(get_db)
+):
+    """
+    Dependencia de FastAPI que intenta extraer y validar el token JWT de las cookies.
+    Si el token no está presente, está en la lista negra o es inválido,
+    retorna None en lugar de lanzar una excepción HTTP 401.
+    """
+    token_str = request.cookies.get("access_token")
+    if not token_str:
+        return None
+        
+    is_blacklisted = db.query(TokenBlacklist).filter(TokenBlacklist.token == token_str).first()
+    if is_blacklisted:
+        return None
+
+    try:
+        payload = jwt.decode(token_str, SECRET_KEY, algorithms=[ALGORITHM])
+        user_id = payload.get("user_id")
+        role = payload.get("role")
+        
+        if user_id is None or role is None:
+            return None
+            
+        request.state.current_user = {
+            "id": user_id,
+            "role": role
+        }
+        return request.state.current_user
+    except JWTError:
+        return None
+
