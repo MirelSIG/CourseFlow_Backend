@@ -15,6 +15,12 @@ Desde la raíz del directorio backend, ejecuta:
 docker-compose up -d --build
 ```
 
+Si el entorno usa Docker rootless o un daemon donde `docker compose down` falle con permisos al detener contenedores, usa el apagado seguro:
+
+```bash
+bash scripts/docker_down_safe.sh
+```
+
 - d: Ejecuta los servicios en segundo plano (detached mode).
 
 - -build: Reconstruye las imágenes para asegurar que el código fuente más reciente esté incluido.

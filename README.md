@@ -225,42 +225,47 @@ erDiagram
 
 ### 5. Docker y docker-compose
 
-### 🚀 Paso a Paso para Levantar el Proyecto
+### Paso a Paso para Levantar el Proyecto
 
 1. **Construir y levantar los contenedores en segundo plano**:
    ```bash
-   sudo docker compose up --build -d
+  docker compose up --build -d
    ```
    *Esto construye la imagen, inicia PostgreSQL, ejecuta las migraciones de Alembic automáticamente a través del entrypoint y levanta el servidor FastAPI.*
 
 2. **Cargar los datos iniciales de prueba (Semilla)**:
    Una vez que los contenedores estén activos y la base de datos esté lista, ejecuta el script de población:
    ```bash
-   sudo docker compose exec backend python scripts/seed.py
+  docker compose exec backend python scripts/seed.py
    ```
+
+Si `docker compose down` no logra detener un contenedor por permisos del daemon, usa el apagado seguro:
+```bash
+bash scripts/docker_down_safe.sh
+```
 
 ### 🌐 Servicios Incluidos y Puertos Expuestos
 
 *   **backend** → FastAPI y Documentación de la API:
-    *   **Swagger UI:** [http://localhost:8001/docs](http://localhost:8001/docs)
-    *   **ReDoc:** [http://localhost:8001/redoc](http://localhost:8001/redoc)
+  *   **Swagger UI:** [http://localhost:8002/docs](http://localhost:8002/docs) *(o el valor de `BACKEND_PORT` en tu `.env`)*
+  *   **ReDoc:** [http://localhost:8002/redoc](http://localhost:8002/redoc)
 *   **db** → PostgreSQL:
     *   **Puerto interno (Docker net):** `5432`
     *   **Puerto externo (Host):** `5434` *(mapeado a `5434` para evitar conflictos)*
 *   **pgadmin** → Interfaz gráfica para gestionar la base de datos:
-    *   **Acceso web:** [http://localhost:5051](http://localhost:5051)
+  *   **Acceso web:** [http://localhost:5052](http://localhost:5052) *(o el valor de `PGADMIN_PORT` en tu `.env`)*
     *   **Usuario:** `admin@admin.com`
     *   **Contraseña:** `admin`
 
-### 🚀 Autoinstalación (Bootstrap) del Superadmin
+### Autoinstalación (Bootstrap) del Superadmin
 El sistema cuenta con un mecanismo de autoinstalación para el rol `superadmin`. Al arrancar el servidor, FastAPI leerá las siguientes variables de entorno:
 - `SUPERADMIN_EMAIL`: Correo electrónico del superadministrador por defecto.
 - `SUPERADMIN_PASSWORD`: Contraseña del superadministrador.
 
 Si están presentes en el entorno (configuradas en el archivo `.env`) y no existe ningún usuario con rol `superadmin` en la base de datos, se creará automáticamente la cuenta de superusuario.
 
-### 🛠️ Configuración de Conexión en pgAdmin (Paso a Paso)
-Una vez que ingreses a PgAdmin a través de `http://localhost:5051` usando las credenciales por defecto, sigue estos pasos para conectarte a la base de datos del proyecto:
+### Configuración de Conexión en pgAdmin (Paso a Paso)
+Una vez que ingreses a PgAdmin a través de `http://localhost:5052` usando las credenciales por defecto, sigue estos pasos para conectarte a la base de datos del proyecto:
 
 1. Haz clic derecho en **Servers** -> **Register** -> **Server...**
 2. En la pestaña **General**:
@@ -324,7 +329,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 
 *   **Registrar un nuevo usuario alumno:**
     ```bash
-    curl -X POST http://localhost:8001/api/v1/auth/register \
+    curl -X POST http://localhost:8002/api/v1/auth/register \
       -H "Content-Type: application/json" \
       -d '{
         "name": "Juan Perez",
@@ -338,7 +343,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 *   **Iniciar sesión (Login):**
     *Inicia sesión y guarda la cookie de sesión en un archivo `cookies.txt` local:*
     ```bash
-    curl -X POST http://localhost:8001/api/v1/auth/login \
+    curl -X POST http://localhost:8002/api/v1/auth/login \
       -c cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -350,7 +355,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 *   **Cerrar sesión (Logout):**
     *Envía la cookie para revocar el token de sesión:*
     ```bash
-    curl -X POST http://localhost:8001/api/v1/auth/logout \
+    curl -X POST http://localhost:8002/api/v1/auth/logout \
       -b cookies.txt \
       -c cookies.txt
     ```
@@ -359,13 +364,13 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 
 *   **Obtener perfil del usuario actual:**
     ```bash
-    curl -X GET http://localhost:8001/api/v1/users/me \
+    curl -X GET http://localhost:8002/api/v1/users/me \
       -b cookies.txt
     ```
 
 *   **Actualizar datos del perfil:**
     ```bash
-    curl -X PATCH http://localhost:8001/api/v1/users/me \
+    curl -X PATCH http://localhost:8002/api/v1/users/me \
       -b cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -379,7 +384,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
     *Inicia sesión primero con `admin1@courseflow.com` (contraseña: `admin123`) o `superadmin@courseflow.com` (contraseña: `superadmin123`):*
     ```bash
     # 1. Login de Admin
-    curl -X POST http://localhost:8001/api/v1/auth/login \
+    curl -X POST http://localhost:8002/api/v1/auth/login \
       -c cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -388,7 +393,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
       }'
 
     # 2. Crear Curso
-    curl -X POST http://localhost:8001/api/v1/courses/ \
+    curl -X POST http://localhost:8002/api/v1/courses/ \
       -b cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -403,7 +408,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 
 *   **Listar cursos disponibles (Accesible por usuarios alumnos):**
     ```bash
-    curl -X GET http://localhost:8001/api/v1/courses/ \
+    curl -X GET http://localhost:8002/api/v1/courses/ \
       -b cookies.txt
     ```
 
@@ -412,7 +417,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 *   **Postular a un curso (Como usuario alumno):**
     *Recuerda que debes estar logueado como un usuario alumno regular:*
     ```bash
-    curl -X POST http://localhost:8001/api/v1/applications/ \
+    curl -X POST http://localhost:8002/api/v1/applications/ \
       -b cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -424,13 +429,13 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 
 *   **Listar mis solicitudes de inscripción propias:**
     ```bash
-    curl -X GET http://localhost:8001/api/v1/applications/me \
+    curl -X GET http://localhost:8002/api/v1/applications/me \
       -b cookies.txt
     ```
 
 *   **Aceptar/Rechazar solicitud (Solo Admin/Superadmin):**
     ```bash
-    curl -X PATCH http://localhost:8001/api/v1/applications/1/status \
+    curl -X PATCH http://localhost:8002/api/v1/applications/1/status \
       -b cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -442,7 +447,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 
 *   **Inscribirse en la lista de espera de un curso:**
     ```bash
-    curl -X POST http://localhost:8001/api/v1/waiting_list \
+    curl -X POST http://localhost:8002/api/v1/waiting_list \
       -b cookies.txt \
       -H "Content-Type: application/json" \
       -d '{
@@ -452,7 +457,7 @@ Puedes copiar y pegar estos comandos en tu terminal, o importarlos directamente 
 
 *   **Consultar la lista de espera de un curso específico (Alumno):**
     ```bash
-    curl -X GET http://localhost:8001/api/v1/waiting-list/1 \
+    curl -X GET http://localhost:8002/api/v1/waiting-list/1 \
       -b cookies.txt
     ```
 
@@ -485,11 +490,11 @@ venv/bin/pytest --cov=src/app
 #### Opción B: Dentro del contenedor de Docker (Entorno Aislado)
 Si quieres correr las pruebas directamente en los contenedores de Docker activos:
 ```bash
-sudo docker compose exec backend pytest
+docker compose exec backend pytest
 ```
 Para ver el reporte de cobertura de código (coverage) dentro de Docker:
 ```bash
-sudo docker compose exec backend pytest --cov=app
+docker compose exec backend pytest --cov=app
 ```
 
 
