@@ -165,6 +165,21 @@ def test_get_all_applications_admin(client: TestClient, db, test_users, test_cou
     assert data[0]["user"]["name"] == "Student User"
     assert data[0]["user"]["email"] == "student@example.com"
 
+def test_get_all_applications_admin_allows_null_has_darde(client: TestClient, db, test_users, test_course):
+    """
+    Verifica que el listado global no falle cuando una solicitud antigua tiene has_darde nulo.
+    """
+    app = Application(user_id=test_users["user"].id, course_id=test_course.id, status=ApplicationStatus.PENDING, has_darde=None)
+    db.add(app)
+    db.commit()
+
+    token = generate_token(test_users["admin"].id, Role.ADMIN.value)
+    res = client.get("/api/v1/applications/", cookies={"access_token": token})
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data) == 1
+    assert data[0]["has_darde"] is None
+
 def test_get_all_applications_unauthorized(client: TestClient, db, test_users, test_course):
     """
     Verifica que un usuario estándar no pueda acceder al listado global de solicitudes.

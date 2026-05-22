@@ -12,7 +12,7 @@ class ApplicationBase(BaseModel):
     Sirve como esquema base para el envío de solicitudes, compartiendo propiedades principales.
     """
     course_id: int
-    has_darde: bool
+    has_darde: Optional[bool] = None
     previous_education: Optional[constr(max_length=250)] = None
 
 class ApplicationCreate(ApplicationBase):

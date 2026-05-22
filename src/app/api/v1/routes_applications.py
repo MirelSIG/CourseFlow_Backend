@@ -5,6 +5,7 @@ Permite crear solicitudes, listar las propias peticiones, actualizar estados y e
 
 from fastapi import APIRouter, Depends, HTTPException, status, Response
 from sqlalchemy.orm import Session
+from sqlalchemy.orm import joinedload
 from app.api.deps import get_db
 from app.models.application import Application
 from app.models.course import Course
@@ -134,7 +135,12 @@ def get_all_applications(
     Lista todas las solicitudes de inscripción del sistema con los datos del usuario solicitante.
     Requiere privilegios de administrador.
     """
-    return db.query(Application).all()
+    return (
+        db.query(Application)
+        .join(Application.user)
+        .options(joinedload(Application.user))
+        .all()
+    )
 
 @router.patch("/{app_id}/status", response_model=ApplicationRead)
 def update_application_status(
