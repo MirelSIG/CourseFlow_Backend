@@ -244,6 +244,23 @@ Si `docker compose down` no logra detener un contenedor por permisos del daemon,
 bash scripts/docker_down_safe.sh
 ```
 
+Si sospechas estado residual de Docker (cache/redes/containers de jornadas anteriores), ejecuta limpieza de cache al apagar:
+```bash
+bash scripts/docker_down_safe.sh --clear-cache
+```
+
+Para limpieza profunda (incluye volumenes no usados):
+```bash
+bash scripts/docker_down_safe.sh --deep-cache
+```
+
+Si al levantar aparece `failed to bind host port ... 5434 ... address already in use`, significa que ese puerto ya está ocupado por otro servicio en tu host (no necesariamente por este compose). Puedes arrancar el stack con otro puerto:
+```bash
+DB_PORT=5435 docker compose up --build -d
+```
+
+También puedes fijar `DB_PORT` en tu archivo `.env` para no repetir el comando.
+
 ### 🌐 Servicios Incluidos y Puertos Expuestos
 
 *   **backend** → FastAPI y Documentación de la API:
@@ -251,7 +268,7 @@ bash scripts/docker_down_safe.sh
   *   **ReDoc:** [http://localhost:8002/redoc](http://localhost:8002/redoc)
 *   **db** → PostgreSQL:
     *   **Puerto interno (Docker net):** `5432`
-    *   **Puerto externo (Host):** `5434` *(mapeado a `5434` para evitar conflictos)*
+  *   **Puerto externo (Host):** `5434` por defecto *(configurable con `DB_PORT`)*
 *   **pgadmin** → Interfaz gráfica para gestionar la base de datos:
   *   **Acceso web:** [http://localhost:5052](http://localhost:5052) *(o el valor de `PGADMIN_PORT` en tu `.env`)*
     *   **Usuario:** `admin@admin.com`
