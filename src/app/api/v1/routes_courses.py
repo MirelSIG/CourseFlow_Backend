@@ -53,6 +53,16 @@ def list_courses(
     # Usuarios normales solo ven los activos.
     return db.query(Course).filter(Course.is_active.is_(True)).all()
 
+@router.get("/catalog", response_model=list[CourseRead])
+def list_catalog_courses(
+    db: Session = Depends(get_db),
+):
+    """
+    Lista los cursos disponibles en el catálogo público.
+    Solo devuelve cursos activos, sin distinguir entre tipos de usuario.
+    """
+    return db.query(Course).filter(Course.is_active.is_(True)).all()
+
 @router.get("/{course_id}", response_model=CourseRead)
 def get_course(
     course_id: int, 

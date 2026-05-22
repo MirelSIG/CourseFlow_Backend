@@ -173,6 +173,27 @@ def test_list_courses_unauthenticated(admin_token):
     assert "Public Active Course" in names
     assert "Public Inactive Course" not in names
 
+def test_list_catalog_courses_returns_only_active_courses(admin_token):
+    """
+    Verifica que el catálogo público devuelva únicamente cursos activos sin requerir autenticación.
+    """
+    client.post(
+        "/api/v1/courses/",
+        json={"name": "Catalog Active Course", "start_date": "2026-01-01", "end_date": "2026-02-01", "is_active": True},
+        cookies=admin_token
+    )
+    client.post(
+        "/api/v1/courses/",
+        json={"name": "Catalog Inactive Course", "start_date": "2026-01-01", "end_date": "2026-02-01", "is_active": False},
+        cookies=admin_token
+    )
+
+    res = client.get("/api/v1/courses/catalog")
+    assert res.status_code == 200
+    names = [c["name"] for c in res.json()]
+    assert "Catalog Active Course" in names
+    assert "Catalog Inactive Course" not in names
+
 def test_get_course_unauthenticated(admin_token):
     """
     Verifica que un usuario no autenticado pueda obtener detalles de un curso activo pero no de uno inactivo.
