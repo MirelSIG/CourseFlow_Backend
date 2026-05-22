@@ -10,6 +10,7 @@ from sqlalchemy.orm import Session
 from jose import jwt, JWTError
 
 from app.api.deps import get_db
+from app.models.user import User
 from app.models.token_blacklist import TokenBlacklist
 from app.utils.errors import error_response, forbidden_error
 from app.utils.enums import Role
@@ -64,6 +65,10 @@ async def require_auth(
             "id": user_id,
             "role": role
         }
+
+        user = db.get(User, user_id)
+        if user is not None and not user.is_active:
+            error_response(403, "User is inactive")
         
         return request.state.current_user
     except jwt.ExpiredSignatureError:
@@ -131,6 +136,10 @@ async def optional_auth(
             "id": user_id,
             "role": role
         }
+
+        user = db.get(User, user_id)
+        if user is not None and not user.is_active:
+            return None
         return request.state.current_user
     except JWTError:
         return None

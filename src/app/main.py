@@ -29,7 +29,8 @@ def on_startup():
                     name="Super Admin",
                     email=superadmin_email,
                     password=hash_password(superadmin_password),
-                    role=Role.SUPERADMIN
+                    role=Role.SUPERADMIN,
+                    is_active=True
                 )
                 db.add(superadmin)
                 db.commit()

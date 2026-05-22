@@ -3,7 +3,7 @@ Define el modelo User que representa a los usuarios registrados en el sistema.
 Incluye atributos de identificación, roles de autorización y referencias a relaciones.
 """
 
-from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum, Date
+from sqlalchemy import Column, Integer, String, DateTime, Enum as SQLEnum, Date, Boolean
 from sqlalchemy.orm import relationship
 from sqlalchemy.sql import func
 from app.db.base import Base
@@ -36,6 +36,9 @@ class User(Base):
     
     # Rol de control de acceso asignado al usuario.
     role = Column(SQLEnum(Role), nullable=False, default=Role.USER)
+
+    # Bandera de estado del usuario; permite desactivación lógica sin borrar el registro.
+    is_active = Column(Boolean, nullable=False, default=True)
     
     # Marcas de tiempo que registran la creación y actualización del perfil.
     created_at = Column(DateTime(timezone=True), server_default=func.now())

@@ -36,6 +36,7 @@ def register(user_in: UserCreate, db: Session = Depends(get_db)):
         email=user_in.email,
         password=hash_password(user_in.password),
         role=user_in.role,
+        is_active=True,
     )
     db.add(user)
     db.commit()
@@ -53,6 +54,11 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED, 
             detail="Invalid credentials"
+        )
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="User is inactive"
         )
 
     token = create_access_token({"user_id": user.id, "role": user.role})

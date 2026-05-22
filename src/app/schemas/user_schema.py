@@ -55,6 +55,7 @@ class UserRead(UserBase):
     """
     id: int
     role: str
+    is_active: bool
     model_config = ConfigDict(from_attributes=True)
 
 class AdminCreate(BaseModel):
@@ -71,6 +72,7 @@ class AdminUpdate(BaseModel):
     """
     name: Optional[str] = None
     email: Optional[EmailStr] = None
+    is_active: Optional[bool] = None
 
 class UserUpdate(BaseModel):
     """

@@ -7,6 +7,8 @@ import pytest
 from fastapi.testclient import TestClient
 from app.main import app
 from app.utils.enums import Role
+from app.models.user import User
+from app.core.security import hash_password
 
 client = TestClient(app)
 
@@ -101,6 +103,27 @@ def test_login_invalid_credentials():
     )
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid credentials"
+
+def test_login_inactive_user(db):
+    """
+    Verifica que un usuario desactivado no pueda iniciar sesión.
+    """
+    user = User(
+        name="Inactive User",
+        email="inactive@example.com",
+        password=hash_password("testpassword"),
+        role=Role.USER.value,
+        is_active=False,
+    )
+    db.add(user)
+    db.commit()
+
+    response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "inactive@example.com", "password": "testpassword"}
+    )
+    assert response.status_code == 403
+    assert response.json()["detail"] == "User is inactive"
 
 def test_logout():
     """

@@ -35,7 +35,8 @@ def create_admin(
         name=admin_in.name,
         email=admin_in.email,
         password=hash_password(admin_in.password),
-        role=Role.ADMIN
+        role=Role.ADMIN,
+        is_active=True
     )
     db.add(new_admin)
     db.commit()
@@ -50,7 +51,7 @@ def list_admins(
     Recupera la lista de todos los usuarios con el rol ADMIN. Requiere permisos de SUPERADMIN.
     Excluye al propio superadministrador y a los usuarios estándar.
     """
-    admins = db.query(User).filter(User.role == Role.ADMIN).all()
+    admins = db.query(User).filter(User.role == Role.ADMIN, User.is_active.is_(True)).all()
     return admins
 
 @router.patch("/users/{user_id}", response_model=UserRead)
@@ -75,6 +76,9 @@ def update_admin(
         if email_owner:
             error_response(status.HTTP_400_BAD_REQUEST, "Email already registered")
         admin.email = admin_in.email
+
+    if admin_in.is_active is not None:
+        admin.is_active = admin_in.is_active
         
     db.commit()
     db.refresh(admin)
@@ -102,6 +106,6 @@ def delete_admin(
     if not admin:
         error_response(status.HTTP_404_NOT_FOUND, "Admin not found")
         
-    db.delete(admin)
+    admin.is_active = False
     db.commit()
     return

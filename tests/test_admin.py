@@ -96,6 +96,10 @@ def test_admin_crud_flow(superadmin_token, db):
     ids_del = [a["id"] for a in res_get_del.json()]
     assert admin_id not in ids_del
 
+    admin_in_db = db.get(User, admin_id)
+    assert admin_in_db is not None
+    assert admin_in_db.is_active is False
+
 def test_admin_crud_unauthorized(user_token, admin_token):
     """
     Verifica que usuarios y administradores estándar no tengan permisos para acceder a las rutas de administración.
