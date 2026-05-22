@@ -9,7 +9,7 @@ from app.api.deps import get_db
 from app.models.application import Application
 from app.models.course import Course
 from app.models.user import User
-from app.schemas.application_schema import ApplicationCreate, ApplicationRead, ApplicationStatusUpdate
+from app.schemas.application_schema import ApplicationCreate, ApplicationRead, ApplicationDetailRead, ApplicationStatusUpdate
 from app.utils.decorators import require_auth, require_role
 from app.utils.enums import Role, ApplicationStatus
 from datetime import date
@@ -124,6 +124,17 @@ def get_my_applications(
     """
     user_id = current_user.get("id")
     return db.query(Application).filter(Application.user_id == user_id).all()
+
+@router.get("/", response_model=list[ApplicationDetailRead])
+def get_all_applications(
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role([Role.ADMIN]))
+):
+    """
+    Lista todas las solicitudes de inscripción del sistema con los datos del usuario solicitante.
+    Requiere privilegios de administrador.
+    """
+    return db.query(Application).all()
 
 @router.patch("/{app_id}/status", response_model=ApplicationRead)
 def update_application_status(

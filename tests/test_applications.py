@@ -149,6 +149,34 @@ def test_get_my_applications(client: TestClient, db, test_users, test_course):
     assert len(res.json()) == 1
     assert res.json()[0]["course_id"] == test_course.id
 
+def test_get_all_applications_admin(client: TestClient, db, test_users, test_course):
+    """
+    Verifica que un administrador pueda listar todas las solicitudes con datos del usuario solicitante.
+    """
+    app = Application(user_id=test_users["user"].id, course_id=test_course.id, status=ApplicationStatus.PENDING, has_darde=True)
+    db.add(app)
+    db.commit()
+
+    token = generate_token(test_users["admin"].id, Role.ADMIN.value)
+    res = client.get("/api/v1/applications/", cookies={"access_token": token})
+    assert res.status_code == 200
+    data = res.json()
+    assert len(data) == 1
+    assert data[0]["user"]["name"] == "Student User"
+    assert data[0]["user"]["email"] == "student@example.com"
+
+def test_get_all_applications_unauthorized(client: TestClient, db, test_users, test_course):
+    """
+    Verifica que un usuario estándar no pueda acceder al listado global de solicitudes.
+    """
+    app = Application(user_id=test_users["user"].id, course_id=test_course.id, status=ApplicationStatus.PENDING, has_darde=True)
+    db.add(app)
+    db.commit()
+
+    token = generate_token(test_users["user"].id, Role.USER.value)
+    res = client.get("/api/v1/applications/", cookies={"access_token": token})
+    assert res.status_code == 403
+
 def test_update_application_status_admin(client: TestClient, db, test_users, test_course):
     """
     Verifica que un administrador pueda cambiar el estado de una solicitud (por ejemplo, a 'accepted').
