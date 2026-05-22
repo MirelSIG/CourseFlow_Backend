@@ -13,7 +13,7 @@ from app.utils.enums import Role
 from app.models.application import Application
 from app.schemas.application_schema import ApplicationDetailRead
 
-router = APIRouter()
+router = APIRouter(tags=["courses"])
 
 @router.post("/", response_model=CourseRead, status_code=status.HTTP_201_CREATED)
 def create_course(
@@ -53,7 +53,14 @@ def list_courses(
     # Usuarios normales solo ven los activos.
     return db.query(Course).filter(Course.is_active.is_(True)).all()
 
-@router.get("/catalog", response_model=list[CourseRead])
+@router.get(
+    "/catalog",
+    response_model=list[CourseRead],
+    tags=["courses"],
+    summary="Catálogo público de cursos",
+    description="Devuelve únicamente los cursos activos, sin requerir autenticación.",
+    response_description="Lista de cursos activos disponibles en el catálogo.",
+)
 def list_catalog_courses(
     db: Session = Depends(get_db),
 ):
