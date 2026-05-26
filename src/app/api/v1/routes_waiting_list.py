@@ -8,6 +8,9 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.api.deps import get_db
 from app.models.waiting_list import WaitingList
+from app.schemas.waiting_list_schema import WaitingListRead, WaitingListStatusUpdate
+from app.utils.decorators import require_role
+from app.utils.enums import Role
 
 router = APIRouter()
 
@@ -45,3 +48,24 @@ def list_waiting_list(course_id: int, db: Session = Depends(get_db)):
         .order_by(WaitingList.position.asc())
         .all()
     )
+
+@router.patch("/{app_id}/status", response_model=WaitingListRead)
+def update_waiting_list_status(
+    app_id: int,
+    status_update: WaitingListStatusUpdate,
+    db: Session = Depends(get_db),
+    current_user: dict = Depends(require_role([Role.ADMIN])),
+):
+    """
+    Actualiza el estado de una solicitud de en espera específica. Requiere privilegios de administrador.
+    """
+    app_obj = db.get(WaitingList, app_id)
+    if not app_obj:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND, detail="Waiting list entry not found"
+        )
+
+    app_obj.status = status_update.status
+    db.commit()
+    db.refresh(app_obj)
+    return app_obj

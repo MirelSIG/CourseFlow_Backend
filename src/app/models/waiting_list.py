@@ -3,9 +3,10 @@ Define el modelo WaitingList que representa las posiciones de los estudiantes en
 Garantiza pares únicos de usuario-curso y posiciones únicas en la cola de espera de cada curso.
 """
 
-from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint
+from sqlalchemy import Column, Integer, ForeignKey, DateTime, UniqueConstraint, Enum as SQLEnum
 from sqlalchemy.sql import func
 from app.db.base import Base
+from app.utils.enums import ApplicationStatus
 
 class WaitingList(Base):
     """
@@ -27,6 +28,9 @@ class WaitingList(Base):
     
     # Identificador que hace referencia al curso (Course) solicitado.
     course_id = Column(Integer, ForeignKey("courses.id", ondelete="CASCADE"), nullable=False)
+
+    # Estado actual de la solicitud (PENDIENTE, ACEPTADA, RECHAZADA).
+    status = Column(SQLEnum(ApplicationStatus), nullable=False, default=ApplicationStatus.PENDING)
     
     # Posición numérica del usuario en la cola de espera (comienza en 1).
     position = Column(Integer, nullable=False)
