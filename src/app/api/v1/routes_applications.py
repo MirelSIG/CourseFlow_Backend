@@ -138,7 +138,7 @@ def get_all_applications(
     return (
         db.query(Application)
         .join(Application.user)
-        .options(joinedload(Application.user))
+        .options(joinedload(Application.user), joinedload(Application.course))
         .all()
     )
 

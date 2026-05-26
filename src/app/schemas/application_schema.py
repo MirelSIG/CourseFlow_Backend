@@ -5,6 +5,7 @@ Valida las solicitudes, las operaciones de lectura detalladas y las modificacion
 
 from pydantic import BaseModel, constr, ConfigDict
 from typing import Optional
+from datetime import date
 from app.utils.enums import ApplicationStatus
 
 class ApplicationBase(BaseModel):
@@ -38,11 +39,23 @@ class UserShort(BaseModel):
     email: str
     model_config = ConfigDict(from_attributes=True)
 
+class CourseShort(BaseModel):
+    """
+    Formatea una representación condensada de los cursos solicitados.
+    """
+    id: int
+    name: str
+    start_date: date
+    end_date: date
+    is_active: bool
+    model_config = ConfigDict(from_attributes=True)
+
 class ApplicationDetailRead(ApplicationRead):
     """
-    Extiende el esquema de lectura de solicitudes para incrustar datos detallados del usuario solicitante.
+    Extiende el esquema de lectura de solicitudes para incrustar datos detallados del usuario solicitante y del curso asociado.
     """
     user: UserShort
+    course: CourseShort
 
 class ApplicationStatusUpdate(BaseModel):
     """
