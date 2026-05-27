@@ -18,7 +18,7 @@ router = APIRouter()
 def add_to_waiting_list(user_id: int, course_id: int, db: Session = Depends(get_db)):
     """
     Añade un usuario a la lista de espera de un curso específico.
-    Calcula de manera dinámica la siguiente posición de espera disponible en la cola.
+    Calcula de manera dinámica la siguiente posición de espera disponible en la cola..
     """
     max_pos = (
         db.query(func.max(WaitingList.position))
