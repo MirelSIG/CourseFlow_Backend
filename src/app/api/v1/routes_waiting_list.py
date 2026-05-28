@@ -8,17 +8,30 @@ from sqlalchemy.orm import Session
 from sqlalchemy import func
 from app.api.deps import get_db
 from app.models.waiting_list import WaitingList
-from app.schemas.waiting_list_schema import WaitingListRead, WaitingListStatusUpdate
-from app.utils.decorators import require_role
-from app.utils.enums import Role
+from app.models.application import Application
+from app.utils.enums import ApplicationStatus
 
 router = APIRouter()
+
+def _reindex_waiting_list(course_id: int, db: Session):
+    """
+    Reindexa las posiciones de la lista de espera para un curso específico.
+    """
+    entries = (
+        db.query(WaitingList)
+        .filter(WaitingList.course_id == course_id)
+        .order_by(WaitingList.position.asc(), WaitingList.id.asc())
+        .all()
+    )
+    for idx, entry in enumerate(entries):
+        entry.position = idx + 1
+    db.commit()
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 def add_to_waiting_list(user_id: int, course_id: int, db: Session = Depends(get_db)):
     """
     Añade un usuario a la lista de espera de un curso específico.
-    Calcula de manera dinámica la siguiente posición de espera disponible en la cola..
+    Calcula de manera dinámica la siguiente posición de espera disponible en la cola.
     """
     max_pos = (
         db.query(func.max(WaitingList.position))
@@ -49,23 +62,63 @@ def list_waiting_list(course_id: int, db: Session = Depends(get_db)):
         .all()
     )
 
-@router.patch("/{app_id}/status", response_model=WaitingListRead)
-def update_waiting_list_status(
-    app_id: int,
-    status_update: WaitingListStatusUpdate,
-    db: Session = Depends(get_db),
-    current_user: dict = Depends(require_role([Role.ADMIN])),
-):
+@router.patch("/{entry_id}/pending", status_code=status.HTTP_200_OK)
+def move_to_pending(entry_id: int, db: Session = Depends(get_db)):
     """
-    Actualiza el estado de una solicitud de en espera específica. Requiere privilegios de administrador.
+    Elimina un registro de la lista de espera y devuelve la solicitud asociada al estado PENDIENTE.
     """
-    app_obj = db.get(WaitingList, app_id)
-    if not app_obj:
+    entry = db.get(WaitingList, entry_id)
+    if not entry:
         raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND, detail="Waiting list entry not found"
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Waiting list entry not found"
         )
 
-    app_obj.status = status_update.status
+    # Buscar la solicitud correspondiente
+    application = (
+        db.query(Application)
+        .filter(
+            Application.user_id == entry.user_id,
+            Application.course_id == entry.course_id
+        )
+        .first()
+    )
+    if not application:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Application not found"
+        )
+
+    # Cambiar estado a PENDIENTE
+    application.status = ApplicationStatus.PENDING
+    
+    # Eliminar de la lista de espera
+    course_id = entry.course_id
+    db.delete(entry)
     db.commit()
-    db.refresh(app_obj)
-    return app_obj
+
+    # Reindexar la lista de espera para el curso
+    _reindex_waiting_list(course_id, db)
+
+    return {"detail": "Application restored to pending and waiting list entry removed"}
+
+@router.delete("/{entry_id}", status_code=status.HTTP_204_NO_CONTENT)
+def delete_waiting_entry(entry_id: int, db: Session = Depends(get_db)):
+    """
+    Elimina físicamente un registro de la lista de espera.
+    """
+    entry = db.get(WaitingList, entry_id)
+    if not entry:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Waiting list entry not found"
+        )
+
+    course_id = entry.course_id
+    db.delete(entry)
+    db.commit()
+
+    # Reindexar la lista de espera para el curso
+    _reindex_waiting_list(course_id, db)
+
+    return None
