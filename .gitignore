@@ -120,3 +120,5 @@ frontend/dist/
 *.tmp
 temp/
 tmp/
+
+render.yaml
