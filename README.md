@@ -1,5 +1,7 @@
 # README – Backend CourseFlow (FastAPI + PostgreSQL + Alembic + Docker)
 
+Proyecto disponible en https://courseflow-8auy.onrender.com
+
 1. Introducción
 Este backend implementa la API del proyecto CourseFlow, una plataforma para gestionar cursos, solicitudes de inscripción y listas de espera.
 Está construido con:
@@ -221,7 +223,7 @@ erDiagram
 *   **Usuarios <-> Solicitudes (1:N):** Un usuario puede tener múltiples solicitudes (una por curso), pero cada solicitud pertenece a un único usuario.
 *   **Cursos <-> Solicitudes (1:N):** Un curso puede recibir múltiples solicitudes de inscripción, pero cada solicitud está vinculada a un único curso.
 *   **Relación Muchos a Muchos (M:N):** Los usuarios y los cursos están relacionados indirectamente a través de la tabla `applications`, que actúa como tabla de unión con metadatos adicionales (el estado de la inscripción).
-*   **Lista de Espera:** Vincula usuarios con cursos cuando el cupo está lleno, manteniendo un orden secuencial mediante el campo `position`.
+*   **Lista de Espera:** Vincula usuarios con cursos cuando el cupo eshttps://courseflow-8auy.onrender.comtá lleno, manteniendo un orden secuencial mediante el campo `position`.
 
 ### 5. Docker y docker-compose
 
