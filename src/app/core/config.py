@@ -3,7 +3,7 @@ Define las configuraciones para la aplicación CourseFlow.
 Carga variables de entorno desde un archivo .env y maneja configuraciones por defecto.
 """
 
-from pydantic import Field, AliasChoices, model_validator
+from pydantic import Field, AliasChoices, model_validator, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 import os
 
@@ -33,11 +33,26 @@ else:
         DB_PASSWORD: str = "courseflow"
         DB_NAME: str = "courseflow"
 
-        BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+        BACKEND_CORS_ORIGINS: str | list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
         JWT_SECRET_KEY: str = "CHANGE_ME"
         JWT_ALGORITHM: str = "HS256"
         ACCESS_TOKEN_EXPIRE_MINUTES: int = 30
+
+        @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+        @classmethod
+        def assemble_cors_origins(cls, v: str | list[str]) -> list[str]:
+            if isinstance(v, str):
+                if not v.strip():
+                    return []
+                if v.strip().startswith("[") and v.strip().endswith("]"):
+                    import json
+                    try:
+                        return json.loads(v)
+                    except Exception:
+                        pass
+                return [i.strip() for i in v.split(",") if i.strip()]
+            return v
 
         @model_validator(mode="after")
         def assemble_db_uri(self):
