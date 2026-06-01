@@ -36,7 +36,7 @@ else:
         DB_PASSWORD: str = "courseflow"
         DB_NAME: str = "courseflow"
 
-        BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+        BACKEND_CORS_ORIGINS: str | list[str] = ["http://localhost:5173", "http://localhost:3000"]
 
         JWT_SECRET_KEY: str = Field(
             default="CHANGE_ME",
