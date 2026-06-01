@@ -36,7 +36,20 @@ else:
         DB_PASSWORD: str = "courseflow"
         DB_NAME: str = "courseflow"
 
-        BACKEND_CORS_ORIGINS: str | list[str] = ["http://localhost:5173", "http://localhost:3000"]
+        BACKEND_CORS_ORIGINS: list[str] = ["http://localhost:5173", "http://localhost:3000"]
+
+        @field_validator("BACKEND_CORS_ORIGINS", mode="before")
+        @classmethod
+        def parse_cors_origins(cls, v):
+            """Convierte strings (comma-separated o JSON) a lista para compatibilidad con variables de entorno."""
+            if isinstance(v, str):
+                # Intenta parsear como JSON (ej: '["http://a.com","http://b.com"]')
+                if v.startswith("["):
+                    import json
+                    return json.loads(v)
+                # Si no, trata como valores separados por coma.
+                return [origin.strip() for origin in v.split(",") if origin.strip()]
+            return v
 
         JWT_SECRET_KEY: str = Field(
             default="CHANGE_ME",
