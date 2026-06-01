@@ -11,12 +11,16 @@ from app.models.token_blacklist import TokenBlacklist
 from app.schemas.auth_schema import LoginRequest
 from app.schemas.user_schema import UserCreate, UserRead
 from app.core.security import verify_password, create_access_token, hash_password
+from app.core.config import settings
 from app.utils.decorators import require_auth
 
 router = APIRouter()
 
 # Nombre de la cookie para almacenar el token de acceso.
 COOKIE_NAME = "access_token"
+
+# Determina si el entorno es de producción para configurar cookies seguras.
+_is_production = settings.ENVIRONMENT == "production"
 
 @router.post("/register", response_model=UserRead, status_code=status.HTTP_201_CREATED)
 def register(user_in: UserCreate, db: Session = Depends(get_db)):
@@ -64,13 +68,15 @@ def login(data: LoginRequest, response: Response, db: Session = Depends(get_db))
     token = create_access_token({"user_id": user.id, "role": user.role})
     
     # Establece la cookie HttpOnly en la respuesta HTTP.
+    # En producción (HTTPS + cross-origin): secure=True, samesite="none".
+    # En desarrollo (HTTP + localhost): secure=False, samesite="lax".
     response.set_cookie(
         key=COOKIE_NAME,
         value=token,
         httponly=True,
-        secure=False,  # Debe cambiarse a True en producción bajo HTTPS.
-        samesite="lax",
-        max_age=3600  # Duración de 1 hora.
+        secure=_is_production,
+        samesite="none" if _is_production else "lax",
+        max_age=3600,  # Duración de 1 hora.
     )
     
     return {"message": "Logged in successfully"}
@@ -91,6 +97,11 @@ def logout(request: Request, response: Response, db: Session = Depends(get_db), 
         db.commit()
     
     # Elimina la cookie de sesión en el navegador.
-    response.delete_cookie(COOKIE_NAME)
+    # Debe usar los mismos parámetros que set_cookie para que el navegador la identifique.
+    response.delete_cookie(
+        COOKIE_NAME,
+        secure=_is_production,
+        samesite="none" if _is_production else "lax",
+    )
     
     return {"message": "Logged out successfully"}

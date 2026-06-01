@@ -40,9 +40,15 @@ def on_startup():
         finally:
             db.close()
 
+# Construye la lista de orígenes CORS dinámicamente.
+# Incluye los orígenes de desarrollo y, si está configurada, la URL del frontend en producción.
+cors_origins = settings.BACKEND_CORS_ORIGINS.copy()
+if settings.FRONTEND_URL:
+    cors_origins.append(settings.FRONTEND_URL.rstrip("/"))
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=settings.BACKEND_CORS_ORIGINS,
+    allow_origins=cors_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

@@ -10,6 +10,8 @@ class TestSettings(BaseSettings):
     Representa el contenedor de configuraciones utilizado exclusivamente en la ejecución de pruebas.
     """
     PROJECT_NAME: str = "CourseFlow API - Test Suite"
+    ENVIRONMENT: str = "development"
+    FRONTEND_URL: str | None = None
     
     # Emplea una base de datos SQLite en memoria por defecto para las pruebas.
     SQLALCHEMY_DATABASE_URI: str = "sqlite:///:memory:"
