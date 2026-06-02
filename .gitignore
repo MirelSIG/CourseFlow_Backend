@@ -1,0 +1,27 @@
+# Virtual environments
+venv/
+.venv/
+
+# Python cache
+__pycache__/
+*.py[cod]
+
+# Pytest cache
+.pytest_cache/
+
+# Editor and system files
+.DS_Store
+.vscode/
+.idea/
+
+# Databases
+*.db
+
+# Coverage and mypy
+.coverage
+.mypy_cache/
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
