@@ -162,11 +162,3 @@ F) Tests
 - Validan autenticación, roles, CRUD, seguridad e integridad de la BD.
 
 ---
-
-Si quieres, puedo:
-
-- Añadir una tabla de contenidos.
-- Acortar o resumir secciones para un README más breve.
-- Añadir ejemplos de comandos frecuentes.
-
-Di qué prefieres y continúo.
